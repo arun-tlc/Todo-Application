@@ -2,24 +2,25 @@ package com.example.todoapp.model;
 
 public class TodoItem {
 
-    private String text;
+    private String id;
+    private String parentId;
+    private final String label;
     private boolean isChecked;
 
-    public TodoItem(final String text) {
-        this.text = text;
-        this.isChecked = false;
+    public TodoItem(final String label) {
+        this.label = label;
     }
 
     public String getText() {
-        return text;
+        return label;
     }
 
     public boolean isChecked() {
         return isChecked;
     }
 
-    public void setChecked(final boolean checked) {
-        this.isChecked = checked;
+    public void setChecked() {
+        this.isChecked = ! this.isChecked;
     }
 }
 
