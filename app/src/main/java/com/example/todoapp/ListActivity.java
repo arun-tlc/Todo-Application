@@ -17,23 +17,29 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.todoapp.model.TodoItem;
+import com.example.todoapp.model.TodoList;
 import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * <p>
+ * Displays a list of items within a selected project and allows a user to view and manage items
+ * within the project
+ * </p>
+ *
+ * @author Arun
+ * @version 1.0
+ */
 public class ListActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "TodoListPref";
-    //private static final String PREF_TODO_KEY_ITEMS = "todoItems";
     private TableLayout tableLayout;
     private EditText editText;
+    private TodoList todoList;
     private List<TodoItem> todoItems;
-    private Map<String, List<TodoItem>> todoItemsMap;
     private String selectedListName;
 
     /**
@@ -47,14 +53,14 @@ public class ListActivity extends AppCompatActivity {
      *
      */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.linearlayout);
 
         tableLayout = findViewById(R.id.tableLayout);
         editText = findViewById(R.id.todoEditText);
         selectedListName = getIntent().getStringExtra("List Name");
-        todoItemsMap = new HashMap<>();
+        todoList = new TodoList();
 
         if (null != selectedListName) {
             final TextView textView = findViewById(R.id.textViewListName);
@@ -67,14 +73,14 @@ public class ListActivity extends AppCompatActivity {
 
         backToMenu.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View view) {
                 onBackPressed();
             }
         });
 
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View view) {
                 addNewTodoItem();
             }
         });
@@ -90,7 +96,7 @@ public class ListActivity extends AppCompatActivity {
      */
     private void refreshTableLayout() {
         tableLayout.removeAllViews();
-        todoItems = todoItemsMap.get(selectedListName);
+        todoItems = todoList.getAllList(selectedListName);
 
         if (null != todoItems) {
 
@@ -108,16 +114,12 @@ public class ListActivity extends AppCompatActivity {
     private void addNewTodoItem() {
         final String todoText = editText.getText().toString();
 
-        if (!todoText.isEmpty()) {
+        if (! todoText.isEmpty()) {
             final TodoItem todoItem = new TodoItem(todoText);
-            todoItems = todoItemsMap.get(selectedListName);
 
-            if (null == todoItems) {
-                todoItems = new ArrayList<>();
+            todoList.add(selectedListName, todoItem);
+            todoItems = todoList.getAllList(selectedListName);
 
-                todoItemsMap.put(selectedListName, todoItems);
-            }
-            todoItems.add(todoItem);
             createTableRow(todoItem);
             editText.getText().clear();
 
@@ -140,9 +142,17 @@ public class ListActivity extends AppCompatActivity {
             final Type type = new TypeToken<List<TodoItem>>() {}.getType();
             todoItems = new Gson().fromJson(todoItemsJson, type);
 
-            todoItemsMap.put(selectedListName, todoItems);
-        } else {
-            todoItemsMap.put(selectedListName, new ArrayList<>());
+            if (null != todoItems) {
+
+                for (final TodoItem todoItem : todoItems) {
+                    int textColor = sharedPreferences.getInt(todoItem.getLabel() + "_textColor",
+                            Color.GRAY);
+
+                    todoItem.setTextColor(textColor);
+                }
+            }
+
+            todoList.setAllList(selectedListName, todoItems);
         }
     }
 
@@ -156,7 +166,7 @@ public class ListActivity extends AppCompatActivity {
         final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         final SharedPreferences.Editor editor = sharedPreferences.edit();
 
-        todoItems = todoItemsMap.get(selectedListName);
+        todoItems = todoList.getAllList(selectedListName);
         final String todoItemsJson = new Gson().toJson(todoItems);
 
         editor.putString(selectedListName, todoItemsJson);
@@ -177,23 +187,28 @@ public class ListActivity extends AppCompatActivity {
                 TableLayout.LayoutParams.WRAP_CONTENT));
 
         final CheckBox checkBox = new CheckBox(this);
+        checkBox.setChecked(getCheckBoxState(todoItem.getLabel()));
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
                 final TextView textView = (TextView) tableRow.getChildAt(1);
 
-                if (isChecked) {
-                    textView.setTextColor(Color.GRAY);
-                } else {
-                    textView.setTextColor(Color.BLACK);
-                }
+                todoItem.setChecked(isChecked);
+
+                int textColor = todoItem.isChecked() ? Color.GRAY: Color.BLACK;
+
+                textView.setTextColor(textColor);
+                todoItem.setTextColor(textColor);
+
+                saveCheckBoxState(todoItem.getLabel(), isChecked);
+                saveTextColorState(todoItem.getLabel(), textColor);
             }
         });
 
         tableRow.addView(checkBox);
 
         final TextView todoView = new TextView(this);
-        todoView.setText(todoItem.getText());
+        todoView.setText(todoItem.getLabel());
         tableRow.addView(todoView);
 
         final ImageView closeIcon = new ImageView(this);
@@ -201,7 +216,7 @@ public class ListActivity extends AppCompatActivity {
         closeIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                removeItem(tableRow);
+                removeItem(tableRow, todoItem);
             }
         });
 
@@ -212,24 +227,62 @@ public class ListActivity extends AppCompatActivity {
 
     /**
      * <p>
+     * Saves the text color state of a project item
+     * </p>
+     *
+     * @param label Represents the label of the project
+     * @param textColor The color value of the text
+     */
+    private void saveTextColorState(final String label, final int textColor) {
+        final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        final SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.putInt(label + "_textColor", textColor);
+        editor.apply();
+    }
+
+    /**
+     * <p>
+     * Retrieves the check box state of the project item
+     * </p>
+     *
+     * @param label Represents the label of the project
+     * @return {@code true} if the check box is checked, {@code false} otherwise
+     */
+    private boolean getCheckBoxState(final String label) {
+        final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+
+        return sharedPreferences.getBoolean(label + "_checkBox" , false);
+    }
+
+    /**
+     * <p>
+     * Saves the check box state of a project item
+     * </p>
+     *
+     * @param label Represents the label of the project
+     * @param isChecked Whether the checkbox is checked or not
+     */
+    private void saveCheckBoxState(final String label, final boolean isChecked) {
+        final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        final SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.putBoolean(label + "_checkBox", isChecked);
+        editor.apply();
+    }
+
+    /**
+     * <p>
      * Removes an item in the table layout
      * </p>
      *
      * @param tableRow Represents table row object
      */
-    private void removeItem(final TableRow tableRow) {
+    private void removeItem(final TableRow tableRow, final TodoItem todoItem) {
         tableLayout.removeView(tableRow);
+        todoList.remove(selectedListName, todoItem);
         saveTodoItems(selectedListName);
-        todoItems = todoItemsMap.get(selectedListName);
-
-        if (null != todoItems) {
-            final int index = tableLayout.indexOfChild(tableRow) - 1;
-
-            if (0 <= index && index < todoItems.size()) {
-                todoItems.remove(index);
-                saveTodoItems(selectedListName);
-            }
-        }
+        refreshTableLayout();
     }
 }
 

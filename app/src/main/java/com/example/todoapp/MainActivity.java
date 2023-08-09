@@ -1,40 +1,44 @@
 package com.example.todoapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.todoapp.model.TodoItem;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.example.todoapp.model.Project;
+import com.example.todoapp.model.ProjectList;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * <p>
+ * Displays the activities of the todo application
+ * </p>
+ *
+ * @author Arun
+ * @version 1.0
+ */
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private ListView listView;
     private ArrayAdapter<String> arrayAdapter;
-    private List<String> nameLists;
+    private List<Project> projects;
+    private ProjectList projectList;
 
     /**
      * <p>
@@ -53,8 +57,14 @@ public class MainActivity extends AppCompatActivity {
 
         drawerLayout = findViewById(R.id.drawerLayout);
         listView = findViewById(R.id.nameListView);
-        nameLists = new ArrayList<>();
-        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nameLists);
+
+        if (null == projectList) {
+            projectList = new ProjectList();
+        }
+
+        projects = projectList.getAllList();
+        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
+                extractProjectLabels(projects));
 
         listView.setAdapter(arrayAdapter);
 
@@ -87,11 +97,49 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
-                final String name = nameLists.get(position);
+                final Project selectedProject = projectList.getAllList().get(position);
 
-                goToItemListPage(name);
+//                if (null != selectedProject) {
+                    goToItemListPage(selectedProject.getLabel());
+//                }
             }
         });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(final AdapterView<?> parent, final View view,
+                                           final int position, final long id) {
+                final Project selectedProject = projects.get(position);
+                final String projectName = selectedProject.getLabel();
+
+                projectList.remove(projectName);
+                arrayAdapter.remove(projectName);
+                arrayAdapter.notifyDataSetChanged();
+
+                Toast.makeText(MainActivity.this, String.join(" ",
+                        projectName, "ListName Removed"), Toast.LENGTH_LONG).show();
+
+                return true;
+            }
+        });
+    }
+
+    /**
+     * <p>
+     * Extracts the labels of projects and returns a list of project labels
+     * </p>
+     *
+     * @param projects Represents a list of project
+     * @return The list of project labels
+     */
+    private List<String> extractProjectLabels(final List<Project> projects) {
+        final List<String> projectLabels = new ArrayList<>();
+
+        for (final Project project : projects) {
+            projectLabels.add(project.getLabel());
+        }
+
+        return projectLabels;
     }
 
     /**
@@ -125,9 +173,27 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(final DialogInterface dialog, final int which) {
                         final String name = editText.getText().toString().trim();
 
-                        if (!name.isEmpty()) {
-                            nameLists.add(name);
-                            arrayAdapter.notifyDataSetChanged();
+                        if (! name.isEmpty()) {
+                            final Project project = new Project();
+
+                            for (final Project existingProject : projects) {
+                                if (existingProject.getLabel().equals(name)) {
+                                    project.setChecked();
+                                }
+                            }
+
+                            if (! project.isChecked()) {
+                                project.setLabel(name);
+                                projectList.add(project);
+
+                                arrayAdapter.clear();
+                                arrayAdapter.addAll(extractProjectLabels(projects));
+//                            nameLists.add(name);
+                                arrayAdapter.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(MainActivity.this,
+                                        "Project Name Already Exists", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
                 })
