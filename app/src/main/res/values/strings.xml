@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">todoApp</string>
+
+    <string-array name="filter_array">
+        <item>All</item>
+        <item>Completed</item>
+        <item>Non-Completed</item>
+    </string-array>
 </resources>

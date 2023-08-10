@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
      * @param name Represents the list name
      */
     private void goToItemListPage(final String name) {
-        final Intent intent = new Intent(MainActivity.this, ListActivity.class);
+        final Intent intent = new Intent(MainActivity.this, FilterActivity.class);
 
         intent.putExtra("List Name", name);
         startActivity(intent);
