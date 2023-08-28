@@ -6,4 +6,35 @@
         <item>Completed</item>
         <item>Non-Completed</item>
     </string-array>
+
+    <string-array name="page_filter">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+    </string-array>
+
+    <string name="header">Todo Application</string>
+    <string name="add_button">Add</string>
+    <string name="page_number">X/Y</string>
+    <string name="user_input">Enter the item..</string>
+    <string name="menu_header">Todo List</string>
+    <string name="add_list_name">AddListName</string>
+    <string name="search_item_check">Items Not Found</string>
+    <string name="checkbox_suffix">_checkbox</string>
+    <string name="text_color_suffix">_textColor</string>
+    <string name="integer_format">"%d / %d"</string>
+    <string name="ui_message">ListName Removed</string>
+    <string name="cancel_view">Cancel</string>
+    <string name="add_view">Add</string>
+    <string name="status">status</string>
+    <string name="item_check">Items Not Found</string>
+    <string name="icon_letter">A</string>
+    <string name="name">Name</string>
+    <string name="text_hint">Enter the name</string>
+    <string name="title">Title</string>
+    <string name="title_hint">Enter the title..</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
 </resources>

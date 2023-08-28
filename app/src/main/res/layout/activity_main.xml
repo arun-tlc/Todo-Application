@@ -27,7 +27,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Todo application"
+                android:text="@string/header"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:layout_centerVertical="true"
@@ -50,24 +50,68 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:background="@android:color/darker_gray">
+            android:background="@android:color/holo_blue_light">
+            
+            <TextView
+                android:id="@+id/profileIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/circle_background"
+                android:text="U1"
+                android:gravity="center"
+                android:textSize="24sp"
+                android:textStyle="bold"/>
+            
+            <TextView
+                android:id="@+id/userName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User 1"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:layout_toEndOf="@id/profileIcon"
+                android:layout_marginStart="8dp"/>
+
+            <TextView
+                android:id="@+id/userTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User Title"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:layout_below="@id/userName"
+                android:layout_toEndOf="@id/profileIcon"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="2dp"/>
 
             <ImageButton
-                android:id="@+id/backMenuButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_back"
-                android:background="?attr/selectableItemBackgroundBorderless"/>
-            <TextView
-                android:id="@+id/sideNavTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Todo List"
-                android:textSize="18sp"
-                android:textColor="@android:color/white"
+                android:id="@+id/editIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_edit"
                 android:layout_centerVertical="true"
-                android:layout_toEndOf="@id/backMenuButton"
-                android:layout_marginStart="8dp"/>
+                android:layout_alignParentEnd="true"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+
+
+
+<!--            <ImageButton-->
+<!--                android:id="@+id/backMenuButton"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:src="@drawable/ic_back"-->
+<!--                android:background="?attr/selectableItemBackgroundBorderless"/>-->
+<!--            <TextView-->
+<!--                android:id="@+id/sideNavTitle"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/menu_header"-->
+<!--                android:textSize="18sp"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:layout_centerVertical="true"-->
+<!--                android:layout_toEndOf="@id/backMenuButton"-->
+<!--                android:layout_marginStart="8dp"/>-->
 
         </RelativeLayout>
 
@@ -75,13 +119,14 @@
             android:id="@+id/addListName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="AddListName"
+            android:text="@string/add_list_name"
             android:textSize="18sp"
             android:padding="16dp"
             android:drawableStart="@drawable/ic_add"
             android:clickable="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            tools:ignore="UseCompatTextViewDrawableXml" />
+            tools:ignore="UseCompatTextViewDrawableXml"
+            android:focusable="true"/>
 
         <ListView
             android:id="@+id/nameListView"

@@ -1,7 +1,5 @@
 package com.example.todoapp.model;
 
-import java.util.UUID;
-
 public class TodoItem {
 
     private String id;
