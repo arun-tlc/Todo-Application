@@ -32,7 +32,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
-public class QueryActivity extends AppCompatActivity {
+public class PaginationActivity extends AppCompatActivity {
 
     private static final String PREF_NAME = "TodoListPref";
     private TableLayout tableLayout;
@@ -40,7 +40,8 @@ public class QueryActivity extends AppCompatActivity {
     private TodoList todoList;
     private Query query;
     private List<TodoItem> todoItems;
-    private String selectedListName;
+    private Long selectedProjectId;
+    private String selectedProjectName;
     private SearchView searchView;
     private Spinner statusSpinner;
     private Spinner pageFilter;
@@ -51,6 +52,7 @@ public class QueryActivity extends AppCompatActivity {
     private TextView pageNumber;
     private int currentPage = 1;
     private int pageSize;
+    private static long id = 0L;
     private int lastKnownPage;
 
     /**
@@ -69,7 +71,8 @@ public class QueryActivity extends AppCompatActivity {
 
         tableLayout = findViewById(R.id.tableLayout);
         editText = findViewById(R.id.todoEditText);
-        selectedListName = getIntent().getStringExtra("List Name");
+        selectedProjectId = getIntent().getLongExtra("Project Id", 0L);
+        selectedProjectName = getIntent().getStringExtra("Project Name");
         todoList = new TodoList();
         query = todoList.getQuery();
         searchView = findViewById(R.id.searchView);
@@ -81,17 +84,16 @@ public class QueryActivity extends AppCompatActivity {
         pageSize = Integer.parseInt(pageFilter.getSelectedItem().toString());
         final ImageButton filterButton = findViewById(R.id.filterButton);
 
-        if (null != selectedListName) {
+        if (null != selectedProjectName) {
             final TextView textView = findViewById(R.id.textViewListName);
 
-            textView.setText(selectedListName);
+            textView.setText(selectedProjectName);
         }
         final Button addButton = findViewById(R.id.button);
         final ImageButton backToMenu = findViewById(R.id.menuButton);
         final ImageButton addSymbol = findViewById(R.id.addButton);
 
         addSymbol.setOnClickListener(view -> {
-
             if (editText.getVisibility() == View.GONE) {
                 editText.setVisibility(View.VISIBLE);
                 addButton.setVisibility(View.VISIBLE);
@@ -115,7 +117,6 @@ public class QueryActivity extends AppCompatActivity {
                 pageFilter.setVisibility(View.GONE);
             }
         });
-
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query) {
@@ -135,7 +136,6 @@ public class QueryActivity extends AppCompatActivity {
                 return true;
             }
         });
-
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(final AdapterView<?> parent, final View view,
@@ -145,7 +145,6 @@ public class QueryActivity extends AppCompatActivity {
 
                 filterItemState();
                 refreshTableLayout();
-                updateButtonVisibility();
                 updatePageNumber(pageNumber);
             }
 
@@ -155,7 +154,6 @@ public class QueryActivity extends AppCompatActivity {
                 showNotCompleted = false;
             }
         });
-
         pageFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(final AdapterView<?> parent, final View view,
@@ -177,7 +175,6 @@ public class QueryActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(final AdapterView<?> parent) {}
         });
-
         nextButton.setOnClickListener(view -> {
             if ((currentPage * pageSize) < todoItems.size()) {
                 currentPage++;
@@ -185,7 +182,6 @@ public class QueryActivity extends AppCompatActivity {
                 updatePageNumber(pageNumber);
             }
         } );
-
         prevButton.setOnClickListener(view -> {
             if (currentPage > 1) {
                 currentPage--;
@@ -193,7 +189,7 @@ public class QueryActivity extends AppCompatActivity {
                 updatePageNumber(pageNumber);
             }
         });
-        loadTodoItems(selectedListName);
+        loadTodoItems(selectedProjectName);
 
         if (null != todoItems) {
             refreshTableLayout();
@@ -220,7 +216,7 @@ public class QueryActivity extends AppCompatActivity {
         }
         setSortingInfo();
         query.setFilterObj(filterObj);
-        todoItems = todoList.filterAndSortItems(selectedListName);
+        todoItems = todoList.filterAndSortItems();
 
         moveToLastPage();
     }
@@ -294,7 +290,7 @@ public class QueryActivity extends AppCompatActivity {
         tableLayout.removeAllViews();
         query.setSearch(searchItem);
         setSortingInfo();
-        todoItems = todoList.filterAndSortItems(selectedListName);
+        todoItems = todoList.filterAndSortItems();
 
         moveToLastPage();
         refreshTableLayout();
@@ -331,8 +327,10 @@ public class QueryActivity extends AppCompatActivity {
         if (! todoText.isEmpty()) {
             final TodoItem todoItem = new TodoItem(todoText);
 
-            todoList.add(selectedListName, todoItem);
-            todoItems = todoList.getAllList(selectedListName);
+            todoItem.setParentId(selectedProjectId);
+            todoItem.setId(++id);
+            todoList.add(todoItem);
+            todoItems = todoList.getAllItems(selectedProjectId);
             final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
             pageNumber.setVisibility(View.VISIBLE);
             prevButton.setVisibility(View.VISIBLE);
@@ -343,46 +341,33 @@ public class QueryActivity extends AppCompatActivity {
             }
             createTableRow(todoItem);
             editText.getText().clear();
-            saveTodoItems(selectedListName);
+            saveTodoItems(selectedProjectName);
 
             refreshTableLayout();
             updatePageNumber(pageNumber);
         }
+
     }
 
-    /**
-     * <p>
-     * Loads the data to shared preferences for data persistent
-     * </p>
-     *
-     * @param selectedListName Represents the list name of the selected one by the user
-     */
-    private void loadTodoItems(final String selectedListName) {
+    private void loadTodoItems(final String selectedProjectName) {
         final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        final String todoItemsJson = sharedPreferences.getString(selectedListName, null);
+        final String todoItemsJson = sharedPreferences.getString(selectedProjectName, null);
 
         if (null != todoItemsJson) {
-            final Type type = new TypeToken<List<TodoItem>>() {}.getType();
-            todoItems = new Gson().fromJson(todoItemsJson, type);
+            final Type listType = new TypeToken<List<TodoItem>>() {}.getType();
+            todoItems = new Gson().fromJson(todoItemsJson, listType);
 
-            todoList.setAllList(selectedListName, todoItems);
+            todoList.setAllItems(todoItems);
         }
     }
 
-    /**
-     * <p>
-     * Saves the data of the list name
-     * </p>
-     *
-     * @param selectedListName Represents the list name of the selected one by the user
-     */
-    private void saveTodoItems(final String selectedListName) {
+    private void saveTodoItems(final String selectedProjectName) {
         final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         final SharedPreferences.Editor editor = sharedPreferences.edit();
-        todoItems = todoList.getAllList(selectedListName);
+        todoItems = todoList.getAllItems(selectedProjectId);
         final String todoItemsJson = new Gson().toJson(todoItems);
 
-        editor.putString(selectedListName, todoItemsJson);
+        editor.putString(selectedProjectName, todoItemsJson);
         editor.apply();
     }
 
@@ -405,9 +390,9 @@ public class QueryActivity extends AppCompatActivity {
 
         todoView.setTextColor(todoItem.isChecked() ? Color.GRAY : Color.BLACK);
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            todoItem.setChecked(isChecked);
+            todoItem.setChecked();
             todoView.setTextColor(todoItem.isChecked() ? Color.GRAY : Color.BLACK);
-            saveTodoItems(selectedListName);
+            saveTodoItems(selectedProjectName);
         });
         tableRow.addView(checkBox);
         todoView.setText(todoItem.getLabel());
@@ -432,8 +417,8 @@ public class QueryActivity extends AppCompatActivity {
         final int previousTotalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
 
         tableLayout.removeView(tableRow);
-        todoList.remove(selectedListName, todoItem);
-        saveTodoItems(selectedListName);
+        todoList.remove(todoItem.getId());
+        saveTodoItems(selectedProjectName);
 
         if (todoItems.isEmpty()) {
             pageNumber.setVisibility(View.GONE);

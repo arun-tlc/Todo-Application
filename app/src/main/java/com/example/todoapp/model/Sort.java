@@ -26,3 +26,4 @@ public class Sort {
         this.type = type;
     }
 }
+

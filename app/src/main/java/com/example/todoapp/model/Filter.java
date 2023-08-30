@@ -22,5 +22,6 @@ public class Filter {
     public void setValues(final List<Object> values) {
         this.values = values;
     }
-
 }
+
+

@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class ProjectService {
 
-    private ProjectList projectList;
+    private final ProjectList projectList;
 
     public ProjectService(final ProjectList projectList) {
         this.projectList = projectList;
@@ -37,10 +37,10 @@ public class ProjectService {
      * Removes a project from the project list based on its name
      * </p>
      *
-     * @param projectName Represents the name of the project
+     * @param id Represents the id of the project
      */
-    public void removeProject(final String projectName) {
-        projectList.remove(projectName);
+    public void removeProject(final Long id) {
+        projectList.remove(id);
     }
 
     /**
@@ -48,12 +48,12 @@ public class ProjectService {
      * Checks whether the project already exist in the project list
      * </p>
      *
-     * @param existingProject Represents project object
+     * @param projectName Represents name of the project
      * @return True if project is exists, false otherwise
      */
-    public boolean projectExists(final Project existingProject) {
+    public boolean projectExists(final String projectName) {
         return getAllProjects().stream().anyMatch(project -> project.getLabel()
-                .equals(existingProject.getLabel()));
+                .equals(projectName));
     }
 
     /**

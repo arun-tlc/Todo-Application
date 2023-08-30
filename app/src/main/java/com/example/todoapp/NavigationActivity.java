@@ -21,7 +21,6 @@ import com.example.todoapp.model.ProjectList;
 import com.example.todoapp.model.UserProfile;
 import com.example.todoapp.service.ProjectService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,14 +35,17 @@ public class NavigationActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private ListView listView;
-    private ArrayAdapter<String> arrayAdapter;
+    private ArrayAdapter<Project> arrayAdapter;
     private List<Project> projects;
     private ProjectList projectList;
     private NavigationController navigationController;
+    private static Long id = 0L;
     private static final int REQUEST_CODE = 1;
     private TextView profileIcon;
     private TextView userName;
     private TextView userTitle;
+    private Long userId;
+    private Long projectId;
 
     /**
      * <p>
@@ -71,7 +73,7 @@ public class NavigationActivity extends AppCompatActivity {
         }
         projects = projectList.getAllList();
         arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
-                extractProjectLabels(projects));
+                projects);
 
         listView.setAdapter(arrayAdapter);
         navigationController = new NavigationController(this,
@@ -92,15 +94,14 @@ public class NavigationActivity extends AppCompatActivity {
 
             navigationController.onListItemClick(selectedProject);
         });
-
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            final Project selectedProject = projects.get(position);
+            final Project selectedProject = projectList.getAllList().get(position);
             final String projectName = selectedProject.getLabel();
 
             navigationController.onListItemLongClick(selectedProject);
 
             Toast.makeText(NavigationActivity.this, String.join(" ",
-                    projectName, "ListName Removed"), Toast.LENGTH_LONG).show();
+                    projectName, "ListName Removed"), Toast.LENGTH_SHORT).show();
 
             return true;
         });
@@ -117,34 +118,17 @@ public class NavigationActivity extends AppCompatActivity {
 
     /**
      * <p>
-     * Extracts the labels of projects and returns a list of project labels
-     * </p>
-     *
-     * @param projects Represents a list of project
-     * @return The list of project labels
-     */
-    private List<String> extractProjectLabels(final List<Project> projects) {
-        final List<String> projectLabels = new ArrayList<>();
-
-        for (final Project project : projects) {
-            projectLabels.add(project.getLabel());
-        }
-
-        return projectLabels;
-    }
-
-    /**
-     * <p>
      * Goes to the list of item creation page
      * </p>
      *
-     * @param name Represents the list name
+     * @param project Represents the list name
      */
-    public void goToItemListPage(final String name) {
+    public void goToItemListPage(final Project project) {
         final Intent intent = new Intent(NavigationActivity.this,
-                QueryActivity.class);
+                PaginationActivity.class);
 
-        intent.putExtra("List Name", name);
+        intent.putExtra("Project Id", projectId);
+        intent.putExtra("Project Name", project.getLabel());
         startActivity(intent);
     }
 
@@ -162,10 +146,11 @@ public class NavigationActivity extends AppCompatActivity {
                 .setView(editText)
                 .setPositiveButton(R.string.add_view, (dialog, which) -> {
                     final String name = editText.getText().toString().trim();
+                    final Project project = new Project();
 
-                    navigationController.addNewProject(name);
-                    arrayAdapter.clear();
-                    arrayAdapter.addAll(extractProjectLabels(projects));
+                    project.setId(++id);
+                    project.setLabel(name);
+                    navigationController.addNewProject(project);
                     arrayAdapter.notifyDataSetChanged();
                 })
                 .setNegativeButton(R.string.cancel_view, null)
@@ -197,15 +182,7 @@ public class NavigationActivity extends AppCompatActivity {
                 Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * <p>
-     * Adds a project to the array adapter and update the views
-     * </p>
-     *
-     * @param name Represents the name of the project
-     */
-    public void addProjectToList(final String name) {
-        arrayAdapter.add(name);
+    public void addProjectToList(final Project project) {
         arrayAdapter.notifyDataSetChanged();
     }
 
@@ -214,10 +191,10 @@ public class NavigationActivity extends AppCompatActivity {
      * Removes the name of the project from the array adapter and update the views
      * </p>
      *
-     * @param projectName Represents the name of the project
+     * @param project Represents the name of the project
      */
-    public void removeProjectFromList(final String projectName) {
-        arrayAdapter.remove(projectName);
+    public void removeProjectFromList(final Project project) {
+        arrayAdapter.remove(project);
         arrayAdapter.notifyDataSetChanged();
     }
 
@@ -230,6 +207,7 @@ public class NavigationActivity extends AppCompatActivity {
 
             userProfile.setName(data.getStringExtra("User Name"));
             userProfile.setTitle(data.getStringExtra("User Title"));
+            userId = data.getLongExtra("User Id", 0L);
             userName.setText(userProfile.getName());
             userTitle.setText(userProfile.getTitle());
             profileIcon.setText(userProfile.getProfileIconText());

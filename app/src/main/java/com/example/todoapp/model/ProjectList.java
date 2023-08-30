@@ -2,6 +2,7 @@ package com.example.todoapp.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ProjectList {
 
@@ -15,8 +16,10 @@ public class ProjectList {
         projectList.add(project);
     }
 
-    public void remove(final String label) {
-        projectList.removeIf(project -> project.getLabel().equals(label));
+    public void remove(final Long id) {
+        projectList = projectList.stream().filter(project -> ! id.equals(project.getId()))
+                .collect(Collectors.toList());
+        projectList.size();
     }
 
     public List<Project> getAllList() {

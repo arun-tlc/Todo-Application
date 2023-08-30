@@ -49,7 +49,7 @@ public class NavigationController {
      * @param project Represents the selected project
      */
     public void onListItemClick(final Project project) {
-        activity.goToItemListPage(project.getLabel());
+        activity.goToItemListPage(project);
     }
 
     /**
@@ -60,8 +60,8 @@ public class NavigationController {
      * @param project Represents the selected project
      */
     public void onListItemLongClick(final Project project) {
-        projectService.removeProject(project.getLabel());
-        activity.removeProjectFromList(project.getLabel());
+        projectService.removeProject(project.getId());
+        activity.removeProjectFromList(project);
     }
 
     /**
@@ -71,14 +71,10 @@ public class NavigationController {
      *
      * @param projectName Represents the name of the project
      */
-    public void addNewProject(final String projectName) {
-        final Project project = new Project();
-
-        project.setLabel(projectName);
-
-        if (! projectService.projectExists(project)) {
+    public void addNewProject(final Project project) {
+        if (! projectService.projectExists(project.getLabel())) {
             projectService.addProject(project);
-            activity.addProjectToList(project.getLabel());
+            activity.addProjectToList(project);
         } else {
             activity.showProjectExistMessage();
         }

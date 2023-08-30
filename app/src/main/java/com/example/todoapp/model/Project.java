@@ -1,16 +1,17 @@
 package com.example.todoapp.model;
 
+import androidx.annotation.NonNull;
+
 public class Project {
 
-    private String id;
+    private Long id;
     private String label;
-    private boolean isChecked;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(final String id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
@@ -22,11 +23,8 @@ public class Project {
         this.label = label;
     }
 
-    public boolean isChecked() {
-        return isChecked;
-    }
-
-    public void setChecked() {
-        this.isChecked = ! this.isChecked;
+    @NonNull
+    public String toString() {
+        return label;
     }
 }

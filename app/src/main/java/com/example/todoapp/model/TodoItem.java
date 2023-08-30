@@ -2,21 +2,13 @@ package com.example.todoapp.model;
 
 public class TodoItem {
 
-    private String id;
+    private Long id;
     private String label;
+    private Long parentId;
     private boolean isChecked;
-    private int textColor;
 
     public TodoItem(final String label) {
         this.label = label;
-    }
-
-    public int getTextColor() {
-        return textColor;
-    }
-
-    public void setTextColor(final int textColor) {
-        this.textColor = textColor;
     }
 
     public String getLabel() {
@@ -27,11 +19,11 @@ public class TodoItem {
         this.label = label;
     }
 
-    public void setId(final String id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
@@ -39,12 +31,15 @@ public class TodoItem {
         return isChecked;
     }
 
-    public void setChecked(final boolean checked) {
-        this.isChecked = checked;
+    public void setChecked() {
+        this.isChecked = ! this.isChecked;
     }
 
-    public String toString() {
-        return label;
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(final Long parentId) {
+        this.parentId = parentId;
     }
 }
-

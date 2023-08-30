@@ -2,61 +2,51 @@ package com.example.todoapp.model;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TodoList {
 
-    private final Map<String, List<TodoItem>> todoItemsMap;
+    private List<TodoItem> todoItems;
     private final Query query;
 
     public TodoList() {
-        this.todoItemsMap = new HashMap<>();
+        this.todoItems = new ArrayList<>();
         this.query = new Query();
     }
 
-    public void add(final String listName, TodoItem todoItem) {
-        final List<TodoItem> todoItems = todoItemsMap.getOrDefault(listName, new ArrayList<>());
-        assert todoItems != null;
-
+    public void add(final TodoItem todoItem) {
         todoItems.add(todoItem);
-        todoItemsMap.put(listName, todoItems);
     }
 
-    public void remove(final String listName, TodoItem todoItem) {
-        final List<TodoItem> todoItems = todoItemsMap.get(listName);
-
-        if (null != todoItems) {
-            todoItems.remove(todoItem);
-        }
+    public void remove(final Long id) {
+        todoItems = todoItems.stream().filter(todoItem -> ! Objects.equals(todoItem.getId(), id))
+                .collect(Collectors.toList());
     }
 
-    public List<TodoItem> getAllList(final String listName) {
-        return todoItemsMap.getOrDefault(listName, new ArrayList<>());
-    }
-
-    public void setAllList(final String listName, List<TodoItem> todoItems) {
-        todoItemsMap.put(listName, todoItems);
-    }
-
-    public long getCompletedCount(final String listName) {
-        final List<TodoItem> items = todoItemsMap.get(listName);
-
-        if (null != items) {
-            return items.stream().filter(TodoItem::isChecked).count();
+    public List<TodoItem> getAllItems(final Long parentId) {
+        if (null == parentId) {
+            return todoItems;
         }
 
-        return 0;
+        return todoItems.stream().filter(todoItem -> todoItem.getParentId().equals(parentId))
+                .collect(Collectors.toList());
     }
 
-    public List<TodoItem> filterAndSortItems(final String listName) {
+    public void setAllItems(final List<TodoItem> todoItemList) {
+        todoItems.clear();
+        todoItems.addAll(todoItemList);
+    }
+
+    public Query getQuery() {
+        return query;
+    }
+
+    public List<TodoItem> filterAndSortItems() {
         final Sort sort = query.getSort();
         final Filter filterObj = query.getFilterObj();
-        final List<TodoItem> todoItems = todoItemsMap.get(listName);
         List<TodoItem> filteredItems;
-        assert todoItems != null;
 
         if (null != query.getSearch() && ! query.getSearch().isEmpty()) {
             filteredItems = filterSearchItems(todoItems, query.getSearch());
@@ -98,9 +88,5 @@ public class TodoList {
         }
 
         return filteredItems;
-    }
-
-    public Query getQuery() {
-        return query;
     }
 }
