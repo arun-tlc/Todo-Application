@@ -1,23 +1,29 @@
 package com.example.todoapp;
 
-import android.app.AlertDialog;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.InputType;
-import android.widget.ArrayAdapter;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.todoapp.adapter.ProjectAdapter;
 import com.example.todoapp.controller.NavigationController;
 import com.example.todoapp.dao.ProjectDao;
+import com.example.todoapp.dao.UserDao;
 import com.example.todoapp.dao.impl.ProjectDaoImpl;
+import com.example.todoapp.dao.impl.UserDaoImpl;
 import com.example.todoapp.model.Project;
 import com.example.todoapp.model.ProjectList;
 import com.example.todoapp.model.UserProfile;
@@ -36,9 +42,11 @@ import java.util.List;
 public class NavigationActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
-    private ListView listView;
-    private ArrayAdapter<Project> arrayAdapter;
+    private RecyclerView recyclerView;
+    private ProjectAdapter projectAdapter;
     private List<Project> projects;
+    private UserProfile userProfile;
+    private UserDao userDao;
     private ProjectList projectList;
     private NavigationController navigationController;
     private ProjectDao projectDao;
@@ -49,6 +57,9 @@ public class NavigationActivity extends AppCompatActivity {
     private TextView userTitle;
     private Long userId;
     private Long projectId;
+    private LinearLayout addLayout;
+    private EditText projectEditText;
+    private Button addProject;
 
     /**
      * <p>
@@ -60,29 +71,53 @@ public class NavigationActivity extends AppCompatActivity {
      *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
      *
      */
+    @SuppressLint("CutPasteId")
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         drawerLayout = findViewById(R.id.drawerLayout);
-        listView = findViewById(R.id.nameListView);
+        recyclerView = findViewById(R.id.nameListView);
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
         userTitle = findViewById(R.id.userTitle);
+        addLayout = findViewById(R.id.addLayout);
+        projectEditText = findViewById(R.id.projectEditText);
+        addProject = findViewById(R.id.addProject);
         projectDao = new ProjectDaoImpl(this);
-
+        userDao = new UserDaoImpl(this);
+        userProfile = userDao.getUserProfile();
 
         if (null == projectList) {
             projectList = new ProjectList();
         }
         projects = projectList.getAllList();
-        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
-                projects);
 
-        listView.setAdapter(arrayAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        projectAdapter = new ProjectAdapter(this, projects);
+
+        recyclerView.setAdapter(projectAdapter);
+        final ProjectItemTouchHelperCallBack touchHelperCallBack =
+                new ProjectItemTouchHelperCallBack(new ProjectItemTouchHelperCallBack.ItemTouchHelperAdapter() {
+                    @Override
+                    public void onItemMove(int fromPosition, int toPosition) {
+                        projectAdapter.swapItems(fromPosition, toPosition);
+                        projectAdapter.notifyItemMoved(fromPosition, toPosition);
+                    }
+                });
+        final ItemTouchHelper itemTouchHelper = new ItemTouchHelper(touchHelperCallBack);
+
+        itemTouchHelper.attachToRecyclerView(recyclerView);
         navigationController = new NavigationController(this,
                 new ProjectService(projectList));
+
+        if (null != userProfile) {
+            userName.setText(userProfile.getName());
+            userTitle.setText(userProfile.getTitle());
+            profileIcon.setText(userProfile.getProfileIconText());
+            userId = userProfile.getId();
+        }
         final ImageButton menuButton = findViewById(R.id.menuButton);
 
         menuButton.setOnClickListener(view -> drawerLayout.openDrawer(GravityCompat.START));
@@ -91,33 +126,77 @@ public class NavigationActivity extends AppCompatActivity {
         editButton.setOnClickListener(view -> goToProfilePage());
         final TextView addListName = findViewById(R.id.addListName);
 
-        addListName.setOnClickListener(view -> navigationController.onAddListNameClick());
-        final ListView listView = findViewById(R.id.nameListView);
+        addListName.setOnClickListener(v -> addLayout.setVisibility(addLayout
+                .getVisibility() == View.GONE ? View.VISIBLE : View.GONE));
+        addProject.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String projectName = projectEditText.getText().toString();
 
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            final Project selectedProject = projectList.getAllList().get(position);
-
-            navigationController.onListItemClick(selectedProject);
+                if (! projectName.isEmpty()) {
+                    addProjectToList(projectName);
+                    projectEditText.setText("");
+                }
+            }
         });
-        listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            final Project selectedProject = projectList.getAllList().get(position);
-            final String projectName = selectedProject.getLabel();
+        projectAdapter.setOnItemClickListener(new ProjectAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                final Project selectedProject = projectList.getAllList().get(position);
 
-            navigationController.onListItemLongClick(selectedProject);
+                navigationController.onListItemClick(selectedProject);
+            }
 
-            Toast.makeText(NavigationActivity.this, String.join(" ",
-                    projectName, "ListName Removed"), Toast.LENGTH_SHORT).show();
-
-            return true;
+            @Override
+            public void onItemLongClick(int position) {
+//                final Project selectedProject = projectList.getAllList().get(position);
+//                final String projectName = selectedProject.getLabel();
+//
+//                navigationController.onListItemLongClick(selectedProject);
+//                Toast.makeText(NavigationActivity.this, String.join(" ",
+//                        projectName, "ListName Removed"), Toast.LENGTH_SHORT).show();
+            }
         });
+//        listView.setOnItemClickListener((parent, view, position, id) -> {
+//            final Project selectedProject = projectList.getAllList().get(position);
+//
+//            navigationController.onListItemClick(selectedProject);
+//        });
+//        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+//            final Project selectedProject = projectList.getAllList().get(position);
+//            final String projectName = selectedProject.getLabel();
+//
+//            navigationController.onListItemLongClick(selectedProject);
+//            Toast.makeText(NavigationActivity.this, String.join(" ",
+//                    projectName, "ListName Removed"), Toast.LENGTH_SHORT).show();
+//
+//            return true;
+//        });
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void addProjectToList(final String projectName) {
+        final Project project = new Project();
+
+        project.setId(++id);
+        project.setLabel(projectName);
+        project.setUserId(userId);
+        navigationController.addNewProject(project);
+        projectId = projectDao.insert(project);
+
+        if (-1 == projectId) {
+            Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT)
+                    .show();
+        }
+        projectAdapter.notifyDataSetChanged();
     }
 
     private void goToProfilePage() {
         final Intent intent = new Intent(NavigationActivity.this,
                 ProfileActivity.class);
 
-        intent.putExtra("Exist Name", userName.getText().toString());
-        intent.putExtra("Exist Title", userTitle.getText().toString());
         startActivityIfNeeded(intent, REQUEST_CODE);
     }
 
@@ -135,41 +214,6 @@ public class NavigationActivity extends AppCompatActivity {
         intent.putExtra("Project Id", projectId);
         intent.putExtra("Project Name", project.getLabel());
         startActivity(intent);
-    }
-
-    /**
-     * <p>
-     * Shows an dialog box to create list of names for the add list name
-     * </p>
-     */
-    public void showAddNameDialog() {
-        final EditText editText = new EditText(this);
-
-        editText.setInputType(InputType.TYPE_CLASS_TEXT);
-        new AlertDialog.Builder(this)
-                .setTitle("Add List Name")
-                .setView(editText)
-                .setPositiveButton(R.string.add_view, (dialog, which) -> {
-                    final String name = editText.getText().toString().trim();
-                    final Project project = new Project();
-
-                    project.setId(++id);
-                    project.setLabel(name);
-                    project.setUserId(userId);
-                    navigationController.addNewProject(project);
-                    projectId = projectDao.insert(project);
-
-                    if (-1 == projectId) {
-                        Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT)
-                                .show();
-                    }
-                    arrayAdapter.notifyDataSetChanged();
-                })
-                .setNegativeButton(R.string.cancel_view, null)
-                .create()
-                .show();
     }
 
     /**
@@ -194,22 +238,6 @@ public class NavigationActivity extends AppCompatActivity {
     public void showProjectExistMessage() {
         Toast.makeText(NavigationActivity.this, "Project Name Already Exists",
                 Toast.LENGTH_SHORT).show();
-    }
-
-    public void addProjectToList(final Project project) {
-        arrayAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * <p>
-     * Removes the name of the project from the array adapter and update the views
-     * </p>
-     *
-     * @param project Represents the name of the project
-     */
-    public void removeProjectFromList(final Project project) {
-        arrayAdapter.remove(project);
-        arrayAdapter.notifyDataSetChanged();
     }
 
     @Override

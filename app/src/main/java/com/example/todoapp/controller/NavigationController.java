@@ -14,8 +14,8 @@ import com.example.todoapp.service.ProjectService;
  */
 public class NavigationController {
 
-    private NavigationActivity activity;
-    private ProjectService projectService;
+    private final NavigationActivity activity;
+    private final ProjectService projectService;
 
     public NavigationController(final NavigationActivity activity,
                                 final ProjectService projectService) {
@@ -30,15 +30,6 @@ public class NavigationController {
      */
     public void onBackMenuButtonClick() {
         activity.onBackPressed();
-    }
-
-    /**
-     * <p>
-     * Handles the action when add listName button is click in the navigation activity
-     * </p>
-     */
-    public void onAddListNameClick() {
-        activity.showAddNameDialog();
     }
 
     /**
@@ -61,7 +52,6 @@ public class NavigationController {
      */
     public void onListItemLongClick(final Project project) {
         projectService.removeProject(project.getId());
-        activity.removeProjectFromList(project);
     }
 
     /**
@@ -69,12 +59,11 @@ public class NavigationController {
      * Adds a new project to the list if project is not already exist in the list
      * </p>
      *
-     * @param projectName Represents the name of the project
+     * @param project Represents the project
      */
     public void addNewProject(final Project project) {
         if (! projectService.projectExists(project.getLabel())) {
             projectService.addProject(project);
-            activity.addProjectToList(project);
         } else {
             activity.showProjectExistMessage();
         }

@@ -27,8 +27,8 @@ import com.example.todoapp.model.Query;
 import com.example.todoapp.model.Sort;
 import com.example.todoapp.model.TodoItem;
 import com.example.todoapp.model.TodoList;
-import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.Collections;

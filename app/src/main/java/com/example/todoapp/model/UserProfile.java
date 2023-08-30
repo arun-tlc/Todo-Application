@@ -2,6 +2,7 @@ package com.example.todoapp.model;
 
 public class UserProfile {
 
+    private Long id;
     private String name;
     private String title;
 
@@ -19,6 +20,14 @@ public class UserProfile {
 
     public void setTitle(final String title) {
         this.title = title;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(final Long id) {
+        this.id = id;
     }
 
     public StringBuilder getProfileIconText() {

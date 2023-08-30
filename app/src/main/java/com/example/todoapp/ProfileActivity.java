@@ -17,6 +17,7 @@ import com.example.todoapp.model.UserProfile;
 public class ProfileActivity extends AppCompatActivity {
 
     private UserDao userDao;
+    private UserProfile userProfile;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -29,11 +30,14 @@ public class ProfileActivity extends AppCompatActivity {
         final Button cancelButton = findViewById(R.id.cancelButton);
         final Button saveButton = findViewById(R.id.saveButton);
         final TextView profileIcon = findViewById(R.id.userProfile);
-        final UserProfile userProfile = new UserProfile();
         userDao = new UserDaoImpl(this);
+        userProfile = userDao.getUserProfile();
 
-        userProfile.setName(getIntent().getStringExtra("Exist Name"));
-        userProfile.setTitle(getIntent().getStringExtra("Exist Title"));
+        if (null == userProfile) {
+            userProfile = new UserProfile();
+        }
+//        userProfile.setName(getIntent().getStringExtra("Exist Name"));
+//        userProfile.setTitle(getIntent().getStringExtra("Exist Title"));
         userName.setText(userProfile.getName());
         userTitle.setText(userProfile.getTitle());
         profileIcon.setText(userProfile.getProfileIconText());
@@ -48,13 +52,15 @@ public class ProfileActivity extends AppCompatActivity {
             userProfile.setName(userName.getText().toString());
             userProfile.setTitle(userTitle.getText().toString());
             profileIcon.setText(userProfile.getProfileIconText());
-            final Long userId = userDao.insert(userProfile);
+            final long userId = null != userProfile.getId() ? userDao.update(userProfile)
+                    : userDao.insert(userProfile);
 
             if (-1 == userId) {
                 Toast.makeText(this,R.string.fail, Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT).show();
             }
+            userProfile.setId(userId);
             resultantIntent.putExtra("User Name", userProfile.getName());
             resultantIntent.putExtra("User Title", userProfile.getTitle());
             setResult(RESULT_OK, resultantIntent);

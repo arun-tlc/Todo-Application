@@ -10,7 +10,7 @@
 
         public static final String CREATE_TABLE =
                 String.format("CREATE TABLE %s (%s INTEGER PRIMARY KEY AUTOINCREMENT, %s TEXT " +
-                                "NOT NULL, %s INTEGER NOT NULL, %s INTEGER, FOREIGN KEY(%s) " +
+                                "NOT NULL, %s INTEGER NOT NULL, %s INTEGER NOT NULL, FOREIGN KEY(%s) " +
                                 "REFERENCES %s(%s));",
                         TABLE_NAME, COLUMN_ID, COLUMN_NAME, COLUMN_USER_ID, COLUMN_ORDER,
                         COLUMN_USER_ID, UserContract.TABLE_NAME, UserContract.COLUMN_ID);
