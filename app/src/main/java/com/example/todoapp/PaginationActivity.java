@@ -20,6 +20,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
+import com.example.todoapp.dao.ItemDao;
+import com.example.todoapp.dao.impl.ItemDaoImpl;
 import com.example.todoapp.model.Filter;
 import com.example.todoapp.model.Query;
 import com.example.todoapp.model.Sort;
@@ -40,6 +42,7 @@ public class PaginationActivity extends AppCompatActivity {
     private TodoList todoList;
     private Query query;
     private List<TodoItem> todoItems;
+    private ItemDao itemDao;
     private Long selectedProjectId;
     private String selectedProjectName;
     private SearchView searchView;
@@ -75,6 +78,7 @@ public class PaginationActivity extends AppCompatActivity {
         selectedProjectName = getIntent().getStringExtra("Project Name");
         todoList = new TodoList();
         query = todoList.getQuery();
+        itemDao = new ItemDaoImpl(this);
         searchView = findViewById(R.id.searchView);
         statusSpinner = findViewById(R.id.statusSpinner);
         pageFilter = findViewById(R.id.pageFilter);
@@ -331,10 +335,17 @@ public class PaginationActivity extends AppCompatActivity {
             todoItem.setId(++id);
             todoList.add(todoItem);
             todoItems = todoList.getAllItems(selectedProjectId);
+            final long itemId = itemDao.insert(todoItem);
             final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
             pageNumber.setVisibility(View.VISIBLE);
             prevButton.setVisibility(View.VISIBLE);
             nextButton.setVisibility(View.VISIBLE);
+
+            if (-1 == itemId) {
+                Toast.makeText(this,R.string.fail, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT).show();
+            }
 
             if (1 == todoItems.size() % pageSize && currentPage == totalPages - 1) {
                 currentPage = totalPages;
@@ -438,5 +449,17 @@ public class PaginationActivity extends AppCompatActivity {
             updatePageNumber(pageNumber);
             updateButtonVisibility();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        itemDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        itemDao.close();
     }
 }

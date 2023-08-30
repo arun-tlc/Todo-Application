@@ -5,6 +5,7 @@ public class TodoItem {
     private Long id;
     private String label;
     private Long parentId;
+    private String status;
     private boolean isChecked;
 
     public TodoItem(final String label) {
@@ -41,5 +42,13 @@ public class TodoItem {
 
     public void setParentId(final Long parentId) {
         this.parentId = parentId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(final String status) {
+        this.status = status;
     }
 }

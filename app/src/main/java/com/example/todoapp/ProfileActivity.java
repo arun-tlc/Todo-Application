@@ -6,12 +6,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.todoapp.dao.UserDao;
+import com.example.todoapp.dao.impl.UserDaoImpl;
 import com.example.todoapp.model.UserProfile;
 
 public class ProfileActivity extends AppCompatActivity {
+
+    private UserDao userDao;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -25,6 +30,7 @@ public class ProfileActivity extends AppCompatActivity {
         final Button saveButton = findViewById(R.id.saveButton);
         final TextView profileIcon = findViewById(R.id.userProfile);
         final UserProfile userProfile = new UserProfile();
+        userDao = new UserDaoImpl(this);
 
         userProfile.setName(getIntent().getStringExtra("Exist Name"));
         userProfile.setTitle(getIntent().getStringExtra("Exist Title"));
@@ -42,10 +48,29 @@ public class ProfileActivity extends AppCompatActivity {
             userProfile.setName(userName.getText().toString());
             userProfile.setTitle(userTitle.getText().toString());
             profileIcon.setText(userProfile.getProfileIconText());
+            final Long userId = userDao.insert(userProfile);
+
+            if (-1 == userId) {
+                Toast.makeText(this,R.string.fail, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT).show();
+            }
             resultantIntent.putExtra("User Name", userProfile.getName());
             resultantIntent.putExtra("User Title", userProfile.getTitle());
             setResult(RESULT_OK, resultantIntent);
             finish();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        userDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        userDao.close();
     }
 }

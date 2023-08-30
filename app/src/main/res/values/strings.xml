@@ -37,4 +37,6 @@
     <string name="title_hint">Enter the title..</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
+    <string name="fail">Failed</string>
+    <string name="success">Added Successfully</string>
 </resources>

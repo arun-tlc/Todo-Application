@@ -16,6 +16,8 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.todoapp.controller.NavigationController;
+import com.example.todoapp.dao.ProjectDao;
+import com.example.todoapp.dao.impl.ProjectDaoImpl;
 import com.example.todoapp.model.Project;
 import com.example.todoapp.model.ProjectList;
 import com.example.todoapp.model.UserProfile;
@@ -39,6 +41,7 @@ public class NavigationActivity extends AppCompatActivity {
     private List<Project> projects;
     private ProjectList projectList;
     private NavigationController navigationController;
+    private ProjectDao projectDao;
     private static Long id = 0L;
     private static final int REQUEST_CODE = 1;
     private TextView profileIcon;
@@ -67,6 +70,8 @@ public class NavigationActivity extends AppCompatActivity {
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
         userTitle = findViewById(R.id.userTitle);
+        projectDao = new ProjectDaoImpl(this);
+
 
         if (null == projectList) {
             projectList = new ProjectList();
@@ -150,7 +155,16 @@ public class NavigationActivity extends AppCompatActivity {
 
                     project.setId(++id);
                     project.setLabel(name);
+                    project.setUserId(userId);
                     navigationController.addNewProject(project);
+                    projectId = projectDao.insert(project);
+
+                    if (-1 == projectId) {
+                        Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT)
+                                .show();
+                    }
                     arrayAdapter.notifyDataSetChanged();
                 })
                 .setNegativeButton(R.string.cancel_view, null)
@@ -212,5 +226,17 @@ public class NavigationActivity extends AppCompatActivity {
             userTitle.setText(userProfile.getTitle());
             profileIcon.setText(userProfile.getProfileIconText());
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        projectDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        projectDao.close();
     }
 }
