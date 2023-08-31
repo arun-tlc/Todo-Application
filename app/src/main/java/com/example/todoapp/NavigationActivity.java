@@ -1,24 +1,21 @@
 package com.example.todoapp;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.todoapp.adapter.ProjectAdapter;
 import com.example.todoapp.controller.NavigationController;
 import com.example.todoapp.dao.ProjectDao;
 import com.example.todoapp.dao.UserDao;
@@ -42,8 +39,8 @@ import java.util.List;
 public class NavigationActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
-    private RecyclerView recyclerView;
-    private ProjectAdapter projectAdapter;
+    private ListView listView;
+    private ArrayAdapter<Project> arrayAdapter;
     private List<Project> projects;
     private UserProfile userProfile;
     private UserDao userDao;
@@ -56,10 +53,8 @@ public class NavigationActivity extends AppCompatActivity {
     private TextView userName;
     private TextView userTitle;
     private Long userId;
-    private Long projectId;
     private LinearLayout addLayout;
     private EditText projectEditText;
-    private Button addProject;
 
     /**
      * <p>
@@ -71,20 +66,19 @@ public class NavigationActivity extends AppCompatActivity {
      *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
      *
      */
-    @SuppressLint("CutPasteId")
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         drawerLayout = findViewById(R.id.drawerLayout);
-        recyclerView = findViewById(R.id.nameListView);
+        listView = findViewById(R.id.nameListView);
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
         userTitle = findViewById(R.id.userTitle);
         addLayout = findViewById(R.id.addLayout);
         projectEditText = findViewById(R.id.projectEditText);
-        addProject = findViewById(R.id.addProject);
+        final Button addProject = findViewById(R.id.addProject);
         projectDao = new ProjectDaoImpl(this);
         userDao = new UserDaoImpl(this);
         userProfile = userDao.getUserProfile();
@@ -93,22 +87,11 @@ public class NavigationActivity extends AppCompatActivity {
             projectList = new ProjectList();
         }
         projects = projectList.getAllList();
+        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
+                projects);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        projectAdapter = new ProjectAdapter(this, projects);
-
-        recyclerView.setAdapter(projectAdapter);
-        final ProjectItemTouchHelperCallBack touchHelperCallBack =
-                new ProjectItemTouchHelperCallBack(new ProjectItemTouchHelperCallBack.ItemTouchHelperAdapter() {
-                    @Override
-                    public void onItemMove(int fromPosition, int toPosition) {
-                        projectAdapter.swapItems(fromPosition, toPosition);
-                        projectAdapter.notifyItemMoved(fromPosition, toPosition);
-                    }
-                });
-        final ItemTouchHelper itemTouchHelper = new ItemTouchHelper(touchHelperCallBack);
-
-        itemTouchHelper.attachToRecyclerView(recyclerView);
+        loadProjectsFromDataBase();
+        listView.setAdapter(arrayAdapter);
         navigationController = new NavigationController(this,
                 new ProjectService(projectList));
 
@@ -126,63 +109,54 @@ public class NavigationActivity extends AppCompatActivity {
         editButton.setOnClickListener(view -> goToProfilePage());
         final TextView addListName = findViewById(R.id.addListName);
 
-        addListName.setOnClickListener(v -> addLayout.setVisibility(addLayout
+        addListName.setOnClickListener(view -> addLayout.setVisibility(addLayout
                 .getVisibility() == View.GONE ? View.VISIBLE : View.GONE));
-        addProject.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String projectName = projectEditText.getText().toString();
+        addProject.setOnClickListener(view -> {
+            final String projectName = projectEditText.getText().toString();
 
-                if (! projectName.isEmpty()) {
-                    addProjectToList(projectName);
-                    projectEditText.setText("");
-                }
+            if (! projectName.isEmpty()) {
+                addProjectToList(projectName);
+                projectEditText.setText("");
             }
         });
-        projectAdapter.setOnItemClickListener(new ProjectAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-                final Project selectedProject = projectList.getAllList().get(position);
+        final ListView listView = findViewById(R.id.nameListView);
 
-                navigationController.onListItemClick(selectedProject);
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            final Project selectedProject = projectList.getAllList().get(position);
 
-            @Override
-            public void onItemLongClick(int position) {
-//                final Project selectedProject = projectList.getAllList().get(position);
-//                final String projectName = selectedProject.getLabel();
-//
-//                navigationController.onListItemLongClick(selectedProject);
-//                Toast.makeText(NavigationActivity.this, String.join(" ",
-//                        projectName, "ListName Removed"), Toast.LENGTH_SHORT).show();
-            }
+            navigationController.onListItemClick(selectedProject);
         });
-//        listView.setOnItemClickListener((parent, view, position, id) -> {
-//            final Project selectedProject = projectList.getAllList().get(position);
-//
-//            navigationController.onListItemClick(selectedProject);
-//        });
-//        listView.setOnItemLongClickListener((parent, view, position, id) -> {
-//            final Project selectedProject = projectList.getAllList().get(position);
-//            final String projectName = selectedProject.getLabel();
-//
-//            navigationController.onListItemLongClick(selectedProject);
-//            Toast.makeText(NavigationActivity.this, String.join(" ",
-//                    projectName, "ListName Removed"), Toast.LENGTH_SHORT).show();
-//
-//            return true;
-//        });
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            final Project selectedProject = projectList.getAllList().get(position);
+            final String projectName = selectedProject.getLabel();
+
+            navigationController.onListItemLongClick(selectedProject);
+            Toast.makeText(NavigationActivity.this, String.join(" ",
+                    projectName, "ListName Removed"), Toast.LENGTH_SHORT).show();
+
+            return true;
+        });
     }
 
-    @SuppressLint("NotifyDataSetChanged")
+    private void loadProjectsFromDataBase() {
+        projects = projectDao.getAllProjects();
+
+        arrayAdapter.clear();
+        arrayAdapter.addAll(projects);
+        arrayAdapter.notifyDataSetChanged();
+    }
+
     private void addProjectToList(final String projectName) {
         final Project project = new Project();
 
         project.setId(++id);
         project.setLabel(projectName);
         project.setUserId(userId);
+        final long projectOrder = arrayAdapter.getCount() + 1;
+
+        project.setProjectOrder(projectOrder);
         navigationController.addNewProject(project);
-        projectId = projectDao.insert(project);
+        final long projectId = projectDao.insert(project);
 
         if (-1 == projectId) {
             Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
@@ -190,13 +164,15 @@ public class NavigationActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT)
                     .show();
         }
-        projectAdapter.notifyDataSetChanged();
+        arrayAdapter.notifyDataSetChanged();
     }
 
     private void goToProfilePage() {
         final Intent intent = new Intent(NavigationActivity.this,
                 ProfileActivity.class);
 
+        intent.putExtra(String.valueOf(R.string.exist), userName.getText().toString());
+        intent.putExtra("Exist Title", userTitle.getText().toString());
         startActivityIfNeeded(intent, REQUEST_CODE);
     }
 
@@ -211,7 +187,7 @@ public class NavigationActivity extends AppCompatActivity {
         final Intent intent = new Intent(NavigationActivity.this,
                 PaginationActivity.class);
 
-        intent.putExtra("Project Id", projectId);
+        intent.putExtra("Project Id", project.getId());
         intent.putExtra("Project Name", project.getLabel());
         startActivity(intent);
     }
@@ -238,6 +214,22 @@ public class NavigationActivity extends AppCompatActivity {
     public void showProjectExistMessage() {
         Toast.makeText(NavigationActivity.this, "Project Name Already Exists",
                 Toast.LENGTH_SHORT).show();
+    }
+
+    public void addProjectToList(final Project project) {
+        arrayAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * <p>
+     * Removes the name of the project from the array adapter and update the views
+     * </p>
+     *
+     * @param project Represents the name of the project
+     */
+    public void removeProjectFromList(final Project project) {
+        arrayAdapter.remove(project);
+        arrayAdapter.notifyDataSetChanged();
     }
 
     @Override

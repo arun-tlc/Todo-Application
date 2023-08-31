@@ -5,8 +5,13 @@ public class TodoItem {
     private Long id;
     private String label;
     private Long parentId;
-    private String status;
+    private StatusType status;
     private boolean isChecked;
+
+    public enum StatusType {
+        COMPLETED,
+        NON_COMPLETED
+    }
 
     public TodoItem(final String label) {
         this.label = label;
@@ -44,11 +49,11 @@ public class TodoItem {
         this.parentId = parentId;
     }
 
-    public String getStatus() {
+    public StatusType getStatus() {
         return status;
     }
 
-    public void setStatus(final String status) {
+    public void setStatus(final StatusType status) {
         this.status = status;
     }
 }

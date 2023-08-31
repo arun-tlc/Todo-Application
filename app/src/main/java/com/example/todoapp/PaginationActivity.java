@@ -36,7 +36,6 @@ import java.util.List;
 
 public class PaginationActivity extends AppCompatActivity {
 
-    private static final String PREF_NAME = "TodoListPref";
     private TableLayout tableLayout;
     private EditText editText;
     private TodoList todoList;
@@ -55,7 +54,7 @@ public class PaginationActivity extends AppCompatActivity {
     private TextView pageNumber;
     private int currentPage = 1;
     private int pageSize;
-    private static long id = 0L;
+    private static Long id = 0L;
     private int lastKnownPage;
 
     /**
@@ -193,9 +192,9 @@ public class PaginationActivity extends AppCompatActivity {
                 updatePageNumber(pageNumber);
             }
         });
-        loadTodoItems(selectedProjectName);
+        loadTodoItemsFromDatabase(selectedProjectId);
 
-        if (null != todoItems) {
+        if (! todoItems.isEmpty()) {
             refreshTableLayout();
             updatePageNumber(pageNumber);
             updateButtonVisibility();
@@ -203,6 +202,16 @@ public class PaginationActivity extends AppCompatActivity {
             pageNumber.setVisibility(View.GONE);
             prevButton.setVisibility(View.GONE);
             nextButton.setVisibility(View.GONE);
+        }
+    }
+
+    private void loadTodoItemsFromDatabase(final Long selectedProjectId) {
+        todoItems = itemDao.getTodoItemsForProject(selectedProjectId);
+
+        if (null != todoItems) {
+            todoList.setAllItems(todoItems);
+            refreshTableLayout();
+            updatePageNumber(pageNumber);
         }
     }
 
@@ -333,9 +342,10 @@ public class PaginationActivity extends AppCompatActivity {
 
             todoItem.setParentId(selectedProjectId);
             todoItem.setId(++id);
+            todoItem.setStatus(TodoItem.StatusType.NON_COMPLETED);
             todoList.add(todoItem);
-            todoItems = todoList.getAllItems(selectedProjectId);
             final long itemId = itemDao.insert(todoItem);
+            todoItems = todoList.getAllItems(selectedProjectId);
             final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
             pageNumber.setVisibility(View.VISIBLE);
             prevButton.setVisibility(View.VISIBLE);
@@ -352,34 +362,11 @@ public class PaginationActivity extends AppCompatActivity {
             }
             createTableRow(todoItem);
             editText.getText().clear();
-            saveTodoItems(selectedProjectName);
 
             refreshTableLayout();
             updatePageNumber(pageNumber);
         }
 
-    }
-
-    private void loadTodoItems(final String selectedProjectName) {
-        final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        final String todoItemsJson = sharedPreferences.getString(selectedProjectName, null);
-
-        if (null != todoItemsJson) {
-            final Type listType = new TypeToken<List<TodoItem>>() {}.getType();
-            todoItems = new Gson().fromJson(todoItemsJson, listType);
-
-            todoList.setAllItems(todoItems);
-        }
-    }
-
-    private void saveTodoItems(final String selectedProjectName) {
-        final SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
-        todoItems = todoList.getAllItems(selectedProjectId);
-        final String todoItemsJson = new Gson().toJson(todoItems);
-
-        editor.putString(selectedProjectName, todoItemsJson);
-        editor.apply();
     }
 
     /**
@@ -396,14 +383,17 @@ public class PaginationActivity extends AppCompatActivity {
                 TableLayout.LayoutParams.WRAP_CONTENT));
         final CheckBox checkBox = new CheckBox(this);
 
-        checkBox.setChecked(todoItem.isChecked());
+        checkBox.setChecked(todoItem.getStatus() == TodoItem.StatusType.COMPLETED);
         final TextView todoView = new TextView(this);
 
-        todoView.setTextColor(todoItem.isChecked() ? Color.GRAY : Color.BLACK);
+        todoView.setTextColor(todoItem.getStatus() == TodoItem.StatusType.COMPLETED ? Color.GRAY
+                : Color.BLACK);
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             todoItem.setChecked();
-            todoView.setTextColor(todoItem.isChecked() ? Color.GRAY : Color.BLACK);
-            saveTodoItems(selectedProjectName);
+            todoItem.setStatus(isChecked ? TodoItem.StatusType.COMPLETED
+                    : TodoItem.StatusType.NON_COMPLETED);
+            todoView.setTextColor(todoItem.getStatus() == TodoItem.StatusType.COMPLETED ? Color.GRAY
+                    : Color.BLACK);
         });
         tableRow.addView(checkBox);
         todoView.setText(todoItem.getLabel());
@@ -429,7 +419,17 @@ public class PaginationActivity extends AppCompatActivity {
 
         tableLayout.removeView(tableRow);
         todoList.remove(todoItem.getId());
-        saveTodoItems(selectedProjectName);
+
+        if (0 < itemDao.delete(todoItem.getId())) {
+            Toast.makeText(this, R.string.delete, Toast.LENGTH_SHORT).show();
+            todoItems = todoList.getAllItems(null);
+
+            refreshTableLayout();
+            updatePageNumber(pageNumber);
+            updateButtonVisibility();
+        } else {
+            Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
+        }
 
         if (todoItems.isEmpty()) {
             pageNumber.setVisibility(View.GONE);
@@ -460,6 +460,12 @@ public class PaginationActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+
+        if (null != todoItems) {
+            for (final TodoItem todoItem : todoItems) {
+                itemDao.update(todoItem);
+            }
+        }
         itemDao.close();
     }
 }

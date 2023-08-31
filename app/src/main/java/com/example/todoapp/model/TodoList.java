@@ -35,7 +35,6 @@ public class TodoList {
     }
 
     public void setAllItems(final List<TodoItem> todoItemList) {
-        todoItems.clear();
         todoItems.addAll(todoItemList);
     }
 
@@ -65,11 +64,11 @@ public class TodoList {
         if (null != filterObj && "status".equals(filterObj.getAttribute())) {
 
             if (filterObj.getValues().contains("Completed")) {
-                filteredItems = filteredItems.stream().filter(TodoItem::isChecked)
-                        .collect(Collectors.toList());
+                filteredItems = filteredItems.stream().filter(todoItem -> todoItem.getStatus()
+                                == TodoItem.StatusType.COMPLETED).collect(Collectors.toList());
             } else if (filterObj.getValues().contains("Not Completed")) {
-                filteredItems = filteredItems.stream().filter(todoItem -> !todoItem.isChecked())
-                        .collect(Collectors.toList());
+                filteredItems = filteredItems.stream().filter(todoItem -> todoItem.getStatus()
+                                == TodoItem.StatusType.NON_COMPLETED).collect(Collectors.toList());
             }
         }
 

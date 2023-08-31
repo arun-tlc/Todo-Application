@@ -39,4 +39,7 @@
     <string name="save">Save</string>
     <string name="fail">Failed</string>
     <string name="success">Added Successfully</string>
+    <string name="exist">Exist Name</string>
+    <string name="exist_title">Exist Title</string>
+    <string name="delete">Deleted Successfully</string>
 </resources>

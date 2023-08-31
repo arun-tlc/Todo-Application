@@ -33,14 +33,16 @@ public class ProfileActivity extends AppCompatActivity {
         userDao = new UserDaoImpl(this);
         userProfile = userDao.getUserProfile();
 
-        if (null == userProfile) {
+        if (null != userProfile) {
+            userName.setText(userProfile.getName());
+            userTitle.setText(userProfile.getTitle());
+            profileIcon.setText(userProfile.getProfileIconText());
+        } else {
             userProfile = new UserProfile();
+
+            userProfile.setName(getIntent().getStringExtra("Exist Name"));
+            userProfile.setTitle(getIntent().getStringExtra("Exist Title"));
         }
-//        userProfile.setName(getIntent().getStringExtra("Exist Name"));
-//        userProfile.setTitle(getIntent().getStringExtra("Exist Title"));
-        userName.setText(userProfile.getName());
-        userTitle.setText(userProfile.getTitle());
-        profileIcon.setText(userProfile.getProfileIconText());
         backToMenu.setOnClickListener(view -> onBackPressed());
         cancelButton.setOnClickListener(view -> {
             onBackPressed();
