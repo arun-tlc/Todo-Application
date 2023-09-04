@@ -6,6 +6,7 @@ public class TodoItem {
     private String label;
     private Long parentId;
     private StatusType status;
+    private Long itemOrder;
     private boolean isChecked;
 
     public enum StatusType {
@@ -55,5 +56,13 @@ public class TodoItem {
 
     public void setStatus(final StatusType status) {
         this.status = status;
+    }
+
+    public Long getItemOrder() {
+        return itemOrder;
+    }
+
+    public void setItemOrder(final Long itemOrder) {
+        this.itemOrder = itemOrder;
     }
 }

@@ -15,6 +15,12 @@
         <item>25</item>
     </string-array>
 
+    <string-array name="font_family">
+        <item>Arial Black</item>
+        <item>Cikal Bakal</item>
+        <item>Times New Roman</item>
+    </string-array>
+
     <string name="header">Todo Application</string>
     <string name="add_button">Add</string>
     <string name="page_number">X/Y</string>
@@ -42,4 +48,6 @@
     <string name="exist">Exist Name</string>
     <string name="exist_title">Exist Title</string>
     <string name="delete">Deleted Successfully</string>
+    <string name="project_name">Project Name</string>
+    <string name="remove_project">Remove Project</string>
 </resources>

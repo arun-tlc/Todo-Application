@@ -10,4 +10,6 @@ public interface ProjectDao {
     List<Project> getAllProjects();
     void open();
     void close();
+    void updateProjectsOrder(final Project project);
+    void delete(Project projectToRemove);
 }

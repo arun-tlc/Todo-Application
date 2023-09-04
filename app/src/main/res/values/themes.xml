@@ -23,4 +23,19 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
     
+    <style name="AppTheme">
+        <item name="android:fontFamily">@font/font</item>
+    </style>
+
+    <style name="ArialBlack">
+        <item name="android:fontFamily">@font/arial_black</item>
+    </style>
+    
+    <style name="CikalBakal">
+        <item name="android:fontFamily">@font/cikal_bakal</item>
+    </style>
+
+    <style name="TimesNewRoman">
+        <item name="android:fontFamily">@font/times_new</item>
+    </style>
 </resources>

@@ -34,6 +34,22 @@ public class ProjectDaoImpl implements ProjectDao {
     }
 
     @Override
+    public void updateProjectsOrder(final Project project) {
+
+        final ContentValues values = new ContentValues();
+
+        values.put(ProjectContract.COLUMN_ORDER, project.getProjectOrder());
+        database.update(ProjectContract.TABLE_NAME, values, String.format("%s = ?",
+                ProjectContract.COLUMN_ID), new String[]{String.valueOf(project.getId())});
+    }
+
+    @Override
+    public void delete(final Project projectToRemove) {
+        database.delete(ProjectContract.TABLE_NAME, String.format("%s = ?",
+                ProjectContract.COLUMN_ID), new String[]{String.valueOf(projectToRemove.getId())});
+    }
+
+    @Override
     public long insert(final Project project) {
         final ContentValues values = new ContentValues();
 
@@ -51,7 +67,8 @@ public class ProjectDaoImpl implements ProjectDao {
         final List<Project> projects = new ArrayList<>();
 
         try (final Cursor cursor = sqLiteDatabase.query(ProjectContract.TABLE_NAME, null,
-                null, null, null, null, null)) {
+                null, null, null, null,
+                ProjectContract.COLUMN_ORDER)) {
 
             if (null != cursor && cursor.moveToFirst()) {
                 do {
