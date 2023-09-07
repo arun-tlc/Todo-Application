@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.example.todoapp.dao.UserDao;
 import com.example.todoapp.database.DataBaseHelper;
+import com.example.todoapp.database.table.SignUpDetails;
 import com.example.todoapp.database.table.UserContract;
 import com.example.todoapp.model.UserProfile;
 
@@ -35,6 +36,7 @@ public class UserDaoImpl implements UserDao {
         final ContentValues values = new ContentValues();
 
         values.put(UserContract.COLUMN_NAME, userProfile.getName());
+        values.put(UserContract.COLUMN_EMAIL, userProfile.getEmail());
         values.put(UserContract.COLUMN_DESCRIPTION, userProfile.getTitle());
 
         return database.insert(UserContract.TABLE_NAME, null, values);

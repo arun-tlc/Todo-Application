@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.todoapp.database.table.ItemContract;
 import com.example.todoapp.database.table.ProjectContract;
+import com.example.todoapp.database.table.SignUpDetails;
 import com.example.todoapp.database.table.UserContract;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
@@ -18,6 +19,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(final SQLiteDatabase db) {
+        db.execSQL(SignUpDetails.CREATE_TABLE);
         db.execSQL(UserContract.CREATE_TABLE);
         db.execSQL(ProjectContract.CREATE_TABLE);
         db.execSQL(ItemContract.CREATE_TABLE);
@@ -25,6 +27,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+        db.execSQL(String.format("DROP TABLE IF EXISTS %s", SignUpDetails.TABLE_NAME));
         db.execSQL(String.format("DROP TABLE IF EXISTS %s", UserContract.TABLE_NAME));
         db.execSQL(String.format("DROP TABLE IF EXISTS %s", ProjectContract.TABLE_NAME));
         db.execSQL(String.format("DROP TABLE IF EXISTS %s", ItemContract.TABLE_NAME));

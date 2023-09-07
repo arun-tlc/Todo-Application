@@ -7,6 +7,7 @@
 
 
     <RelativeLayout
+        android:id="@+id/projectTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/darker_gray"
@@ -28,7 +29,6 @@
             android:layout_marginStart="8dp"
             android:layout_toEndOf="@id/menuButton"
             android:text="@string/header"
-            android:textColor="@android:color/white"
             android:textSize="20sp" />
 
         <ImageButton
@@ -115,14 +115,12 @@
         android:layout_marginTop="16dp"
         android:layout_weight="1">
 
-        <TableLayout
-            android:id="@+id/tableLayout"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:stretchColumns="*">
+            android:layout_height="wrap_content">
 
-
-        </TableLayout>
+        </androidx.recyclerview.widget.RecyclerView>
 
     </ScrollView>
 

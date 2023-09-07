@@ -21,6 +21,17 @@
         <item>Times New Roman</item>
     </string-array>
 
+    <string-array name="font_size">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+
+    <string-array name="default_color">
+        <item>Green</item>
+        <item>Blue</item>
+    </string-array>
+
     <string name="header">Todo Application</string>
     <string name="add_button">Add</string>
     <string name="page_number">X/Y</string>
@@ -50,4 +61,36 @@
     <string name="delete">Deleted Successfully</string>
     <string name="project_name">Project Name</string>
     <string name="remove_project">Remove Project</string>
+    <string name="user_1">User 1</string>
+    <string name="profile_icon">U1</string>
+    <string name="user_title">User Title</string>
+    <string name="font_family">Font Family:</string>
+    <string name="font_size">Font Size :</string>
+    <string name="default_color">Default Color :</string>
+    <string name="logo">LOGO</string>
+    <string name="greetings">Greetings!</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="don_t_have_user_account">Don\'t have user account?</string>
+    <string name="fg_password">Forgot Password?</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="cancel_fg">Cancel</string>
+    <string name="create_your_account">Create your account!</string>
+    <string name="sign_up_name">Name</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="fields_fill">Please fill in all fields</string>
+    <string name="successful_log_in">Sign In Successfully</string>
+    <string name="user_email">User Email</string>
+    <string name="invalid_detail">Invalid Email Or Password</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="password_update">Password Updated Successfully</string>
+    <string name="invalid_email">Invalid Email</string>
+    <string name="account">Account created Successfully</string>
 </resources>
