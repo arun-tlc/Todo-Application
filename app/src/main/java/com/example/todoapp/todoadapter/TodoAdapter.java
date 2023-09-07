@@ -2,6 +2,7 @@ package com.example.todoapp.todoadapter;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.R;
+import com.example.todoapp.TypeFaceUtil;
 import com.example.todoapp.dao.ItemDao;
 import com.example.todoapp.model.TodoItem;
 import com.example.todoapp.projectadapter.ItemTouchHelperAdapter;
@@ -44,7 +46,14 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
         final TodoItem todoItem = todoItems.get(position);
+        final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
+        final float fontSize = TypeFaceUtil.getSelectedFontSize();
 
+        if (null != typeface) {
+            holder.todoTextView.setTypeface(typeface);
+        } else if (0 != fontSize){
+            holder.todoTextView.setTextSize(fontSize);
+        }
         holder.bind(todoItem, listener);
     }
 

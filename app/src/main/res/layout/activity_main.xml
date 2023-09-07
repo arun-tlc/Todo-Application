@@ -12,6 +12,7 @@
         android:orientation="vertical">
 
         <RelativeLayout
+            android:id="@+id/relativeLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/darker_gray"
@@ -31,8 +32,8 @@
                 android:layout_marginStart="8dp"
                 android:layout_toEndOf="@id/menuButton"
                 android:text="@string/header"
-                android:textColor="@android:color/white"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:fontFamily="@font/font"/>
             
             <ImageButton
                 android:id="@+id/settingButton"
@@ -56,6 +57,7 @@
         android:orientation="vertical">
 
         <RelativeLayout
+            android:id="@+id/profileHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/holo_blue_light"
@@ -67,10 +69,9 @@
                 android:layout_height="48dp"
                 android:background="@drawable/circle_background"
                 android:gravity="center"
-                android:text="U1"
+                android:text="@string/profile_icon"
                 android:textSize="24sp"
-                android:textStyle="bold"
-                style="?attr/textAppearanceDisplayLarge"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/userName"
@@ -78,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_toEndOf="@id/profileIcon"
-                android:text="User 1"
+                android:text="@string/user_1"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
 
@@ -90,7 +91,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="2dp"
                 android:layout_toEndOf="@id/profileIcon"
-                android:text="User Title"
+                android:text="@string/user_title"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
 
@@ -161,16 +162,76 @@
         android:fitsSystemWindows="true"
         android:layout_gravity="end"
         android:background="@android:color/white"
-        android:orientation="vertical">
-
-        <Spinner
-            android:id="@+id/fontFamily"
+        android:orientation="vertical"
+        android:padding="16dp">
+        
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:entries="@array/font_family"/>
+            android:orientation="horizontal"
+            android:layout_gravity="center_vertical">
+             
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/font_family"
+                android:textSize="15sp"
+                android:layout_marginTop="4dp"/>
+
+            <Spinner
+                android:id="@+id/fontFamily"
+                android:layout_width="120dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_height="wrap_content"
+                android:entries="@array/font_family" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/font_size"
+                android:textSize="15sp"
+                android:layout_marginTop="4dp"/>
+
+            <Spinner
+                android:id="@+id/fontSize"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:entries="@array/font_size"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/default_color"
+                android:textSize="15sp"
+                android:layout_marginTop="4dp"/>
+
+            <Spinner
+                android:id="@+id/defaultColor"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:entries="@array/default_color"/>
+
+        </LinearLayout>
 
     </LinearLayout>
-
 
 </androidx.drawerlayout.widget.DrawerLayout>

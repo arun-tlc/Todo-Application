@@ -23,19 +23,19 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
     
-    <style name="AppTheme">
+    <style name="AppTheme" parent="Base.Theme.TodoApp">
         <item name="android:fontFamily">@font/font</item>
     </style>
 
-    <style name="ArialBlack">
+    <style name="ArialBlack" parent="Base.Theme.TodoApp">
         <item name="android:fontFamily">@font/arial_black</item>
     </style>
     
-    <style name="CikalBakal">
+    <style name="CikalBakal" parent="Base.Theme.TodoApp">
         <item name="android:fontFamily">@font/cikal_bakal</item>
     </style>
 
-    <style name="TimesNewRoman">
+    <style name="TimesNewRoman" parent="Base.Theme.TodoApp">
         <item name="android:fontFamily">@font/times_new</item>
     </style>
 </resources>

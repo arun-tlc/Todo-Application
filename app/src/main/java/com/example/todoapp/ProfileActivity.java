@@ -18,6 +18,9 @@ public class ProfileActivity extends AppCompatActivity {
 
     private UserDao userDao;
     private UserProfile userProfile;
+    private TextView profileIcon;
+    private Button saveButton;
+    private Button cancelButton;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -27,9 +30,9 @@ public class ProfileActivity extends AppCompatActivity {
         final ImageButton backToMenu = findViewById(R.id.backMenu);
         final EditText userTitle = findViewById(R.id.editTitle);
         final EditText userName = findViewById(R.id.editUserName);
-        final Button cancelButton = findViewById(R.id.cancelButton);
-        final Button saveButton = findViewById(R.id.saveButton);
-        final TextView profileIcon = findViewById(R.id.userProfile);
+        cancelButton = findViewById(R.id.cancelButton);
+        saveButton = findViewById(R.id.saveButton);
+        profileIcon = findViewById(R.id.userProfile);
         userDao = new UserDaoImpl(this);
         userProfile = userDao.getUserProfile();
 
@@ -47,7 +50,6 @@ public class ProfileActivity extends AppCompatActivity {
         cancelButton.setOnClickListener(view -> {
             onBackPressed();
         });
-
         saveButton.setOnClickListener(view -> {
             final Intent resultantIntent = new Intent();
 
@@ -68,6 +70,31 @@ public class ProfileActivity extends AppCompatActivity {
             setResult(RESULT_OK, resultantIntent);
             finish();
         });
+        applyFontToAllLayouts();
+        applyFontSize();
+        applyColorToComponent();
+    }
+
+    private void applyColorToComponent() {
+        final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
+
+        if (defaultColor == R.color.green) {
+            profileIcon.setBackgroundColor(getResources().getColor(R.color.green));
+            saveButton.setBackgroundColor(getResources().getColor(R.color.green));
+            cancelButton.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (defaultColor == R.color.blue) {
+            profileIcon.setBackgroundColor(getResources().getColor(R.color.blue));
+            saveButton.setBackgroundColor(getResources().getColor(R.color.blue));
+            cancelButton.setBackgroundColor(getResources().getColor(R.color.blue));
+        }
+    }
+
+    private void applyFontToAllLayouts() {
+        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+    }
+
+    private void applyFontSize() {
+        TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
     }
 
     @Override

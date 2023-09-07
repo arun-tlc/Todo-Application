@@ -10,6 +10,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -239,7 +240,9 @@ public class DragAndDropActivity extends AppCompatActivity {
             }
         });
         loadTodoItemsFromDatabase(selectedProjectId);
-
+        applyFontToAllLayouts();
+        applyFontSize();
+        applyColorToComponent();
         if (! todoItems.isEmpty()) {
 //            refreshTableLayout();
             updatePageNumber(pageNumber);
@@ -249,6 +252,25 @@ public class DragAndDropActivity extends AppCompatActivity {
             prevButton.setVisibility(View.GONE);
             nextButton.setVisibility(View.GONE);
         }
+    }
+
+    private void applyColorToComponent() {
+        final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
+        final RelativeLayout relativeLayout = findViewById(R.id.projectTitle);
+
+        if (defaultColor == R.color.green) {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (defaultColor == R.color.blue) {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.blue));
+        }
+    }
+
+    private void applyFontToAllLayouts() {
+        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+    }
+
+    private void applyFontSize() {
+        TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
     }
 
     private void loadTodoItemsFromDatabase(final Long selectedProjectId) {

@@ -11,11 +11,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -51,10 +53,10 @@ public class NavigationActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ProjectAdapter projectAdapter;
     private List<Project> projects;
-    private View rootView;
     private UserProfile userProfile;
     private UserDao userDao;
     private ProjectList projectList;
+    private Button addProject;
     private NavigationController navigationController;
     private ProjectDao projectDao;
     private static Long id = 0L;
@@ -65,7 +67,8 @@ public class NavigationActivity extends AppCompatActivity {
     private Long userId;
     private LinearLayout addLayout;
     private EditText projectEditText;
-    private int currentFontPosition = -1;
+    private boolean isFontFamilyItemSelected;
+    private boolean isFontSizeItemSelected;
 
     /**
      * <p>
@@ -90,7 +93,7 @@ public class NavigationActivity extends AppCompatActivity {
         userTitle = findViewById(R.id.userTitle);
         addLayout = findViewById(R.id.addLayout);
         projectEditText = findViewById(R.id.projectEditText);
-        final Button addProject = findViewById(R.id.addProject);
+        addProject = findViewById(R.id.addProject);
         projectDao = new ProjectDaoImpl(this);
         userDao = new UserDaoImpl(this);
         userProfile = userDao.getUserProfile();
@@ -142,7 +145,6 @@ public class NavigationActivity extends AppCompatActivity {
             navigationController.onListItemClick(selectedProject);
         });
         final ImageButton settingButton = findViewById(R.id.settingButton);
-        final LinearLayout rightSideView = findViewById(R.id.rightSideView);
         final Spinner fontFamily = findViewById(R.id.fontFamily);
         final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.font_family, android.R.layout.simple_spinner_item);
@@ -150,11 +152,20 @@ public class NavigationActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         fontFamily.setAdapter(adapter);
 
-        settingButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.END));
+        settingButton.setOnClickListener(view -> drawerLayout.openDrawer(GravityCompat.END));
         fontFamily.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                applyFontFamily(position);
+                if (isFontFamilyItemSelected) {
+                    final int fontId = getFondIdFromPosition(position);
+                    final Typeface typeface = ResourcesCompat.getFont(NavigationActivity.this,
+                            fontId);
+
+                    TypeFaceUtil.setSelectedTypeFace(typeface);
+                    applyFontToAllLayouts();
+                } else {
+                    isFontFamilyItemSelected = true;
+                }
             }
 
             @Override
@@ -162,32 +173,108 @@ public class NavigationActivity extends AppCompatActivity {
 
             }
         });
+        final Spinner fontSizeSpinner = findViewById(R.id.fontSize);
+        final ArrayAdapter<CharSequence> fontSizeAdapter = ArrayAdapter.createFromResource(
+                this, R.array.font_size, android.R.layout.simple_spinner_item);
+
+        fontSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        fontSizeSpinner.setAdapter(fontSizeAdapter);
+        fontSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (isFontSizeItemSelected) {
+                    final float textSize = getFontSize(position);
+
+                    TypeFaceUtil.setSelectedFontSize(textSize);
+                    applyFontSize();
+                } else {
+                    isFontSizeItemSelected = true;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+        final Spinner defaultColorSpinner = findViewById(R.id.defaultColor);
+        final ArrayAdapter<CharSequence> colorAdapter = ArrayAdapter.createFromResource(this,
+                R.array.default_color, android.R.layout.simple_spinner_item);
+
+        colorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        defaultColorSpinner.setAdapter(colorAdapter);
+        defaultColorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                final int selectedColor = getColorResourceId(position);
+
+                TypeFaceUtil.setSelectedDefaultColor(selectedColor);
+                applyColorToComponents(selectedColor);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
     }
 
-    private void applyFontFamily(final int position) {
-        int fontResId;
+    private void applyColorToComponents(final int colorId) {
+        final int selectedColor = ContextCompat.getColor(this, colorId);
+        final RelativeLayout relativeLayout = findViewById(R.id.relativeLayout);
+        final RelativeLayout userProfile = findViewById(R.id.profileHeader);
 
+        relativeLayout.setBackgroundColor(selectedColor);
+        addProject.setBackgroundColor(selectedColor);
+        userProfile.setBackgroundColor(selectedColor);
+    }
+
+    private int getColorResourceId(final int position) {
         switch (position) {
             case 0:
-                fontResId = R.style.ArialBlack;
-//                setTheme(R.style.ArialBlack);
-                break;
+                return R.color.green;
             case 1:
-                fontResId = R.style.CikalBakal;
-//                setTheme((R.style.CikalBakal));
-                break;
-            case 2:
-                fontResId = R.style.TimesNewRoman;
-//                setTheme(R.style.TimesNewRoman);
-                break;
+                return R.color.blue;
             default:
-                fontResId = R.style.Theme_TodoApp;
+                return R.color.default_color;
+        }
+    }
+
+    private void applyFontSize() {
+        TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
+    }
+
+    private float getFontSize(final int position) {
+        switch (position) {
+            case 0:
+                return getResources().getDimension(R.dimen.text_small);
+            case 1:
+                return getResources().getDimension(R.dimen.text_medium);
+            case 2:
+                return getResources().getDimension(R.dimen.text_large);
+            default:
+                return getResources().getDimension(R.dimen.text_default);
+        }
+    }
+
+    private void applyFontToAllLayouts() {
+        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+    }
+
+    private int getFondIdFromPosition(final int position) {
+        switch (position) {
+            case 0:
+                return R.font.arial_black;
+//                setTheme(R.style.ArialBlack);
+//                break;
+            case 1:
+                return R.font.cikal_bakal;
+//                setTheme((R.style.CikalBakal));
+//                break;
+            case 2:
+                return R.font.times_new;
+//                setTheme(R.style.TimesNewRoman);
+//                break;
+            default:
+                return R.font.font;
 //                setTheme(R.style.Theme_TodoApp);
         }
-
-//        if (currentFontPosition != )
-        setTheme(fontResId);
-//        recreate();
     }
 
 

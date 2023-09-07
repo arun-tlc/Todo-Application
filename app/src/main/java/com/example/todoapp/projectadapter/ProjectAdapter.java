@@ -1,6 +1,7 @@
 package com.example.todoapp.projectadapter;
 
 import android.annotation.SuppressLint;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.R;
+import com.example.todoapp.TypeFaceUtil;
 import com.example.todoapp.dao.ProjectDao;
 import com.example.todoapp.model.Project;
 
@@ -52,7 +54,14 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
         final Project project = projects.get(position);
+        final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
+        final float fontSize = TypeFaceUtil.getSelectedFontSize();
 
+        if (null != typeface) {
+            holder.projectNameTextView.setTypeface(typeface);
+        } else if (0 != fontSize) {
+            holder.projectNameTextView.setTextSize(fontSize);
+        }
         holder.projectNameTextView.setText(project.getLabel());
         holder.itemView.setOnClickListener(view -> {
             if (null != onItemClickListener) {
