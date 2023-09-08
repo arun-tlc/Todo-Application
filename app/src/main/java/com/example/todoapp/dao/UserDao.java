@@ -9,4 +9,5 @@ public interface UserDao {
     long update(final UserProfile userProfile);
     void open();
     void close();
+    UserProfile getUserDetails(final String email);
 }

@@ -87,4 +87,32 @@ public class ProjectDaoImpl implements ProjectDao {
 
         return projects;
     }
+
+    @SuppressLint("Range")
+    @Override
+    public List<Project> getAllProjectsForUser(final Long id) {
+        final SQLiteDatabase sqLiteDatabase = dataBaseHelper.getReadableDatabase();
+        final List<Project> projects = new ArrayList<>();
+
+        try (final Cursor cursor = sqLiteDatabase.query(ProjectContract.TABLE_NAME, null,
+                String.format("%s = ?", ProjectContract.COLUMN_USER_ID), new String[]{String.valueOf(id)},
+                null, null, ProjectContract.COLUMN_ORDER)) {
+
+            if (null != cursor && cursor.moveToFirst()) {
+                do {
+                    final Long projectId = cursor.getLong(cursor.getColumnIndex(ProjectContract.COLUMN_ID));
+                    final String projectName = cursor.getString(cursor.getColumnIndex(ProjectContract.COLUMN_NAME));
+                    final Long userId = cursor.getLong(cursor.getColumnIndex(ProjectContract.COLUMN_USER_ID));
+                    final Project project = new Project();
+
+                    project.setId(projectId);
+                    project.setLabel(projectName);
+                    project.setUserId(userId);
+                    projects.add(project);
+                } while (cursor.moveToNext());
+            }
+        }
+
+        return projects;
+    }
 }

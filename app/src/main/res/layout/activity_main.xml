@@ -16,14 +16,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/darker_gray"
-            android:padding="8dp">
+            android:padding="8dp"
+            tools:ignore="UselessParent">
 
             <ImageButton
                 android:id="@+id/menuButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_menu" />
+                android:src="@drawable/ic_menu"
+                android:contentDescription="@string/menu_activity" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -31,18 +33,19 @@
                 android:layout_centerVertical="true"
                 android:layout_marginStart="8dp"
                 android:layout_toEndOf="@id/menuButton"
+                android:fontFamily="@font/font"
                 android:text="@string/header"
                 android:textSize="18sp"
-                android:fontFamily="@font/font"/>
-            
+                tools:ignore="RelativeOverlap" />
+
             <ImageButton
                 android:id="@+id/settingButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_setting"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"/>
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_setting" />
         </RelativeLayout>
 
     </LinearLayout>
@@ -71,7 +74,7 @@
                 android:gravity="center"
                 android:text="@string/profile_icon"
                 android:textSize="24sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/userName"
@@ -87,22 +90,33 @@
                 android:id="@+id/userTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/userName"
+                android:layout_below="@+id/userName"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="8dp"
                 android:layout_toEndOf="@id/profileIcon"
                 android:text="@string/user_title"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
 
             <ImageButton
+                android:id="@+id/logout"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_logout"
+                android:contentDescription="@string/logout" />
+
+            <ImageButton
                 android:id="@+id/editIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
+                android:layout_below="@+id/logout"
+                android:layout_marginTop="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_edit"/>
+                android:src="@drawable/ic_edit"
+                android:contentDescription="@string/edit_user_details" />
 
         </RelativeLayout>
 

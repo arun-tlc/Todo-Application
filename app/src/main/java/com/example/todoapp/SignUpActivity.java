@@ -21,6 +21,9 @@ import com.example.todoapp.dao.impl.UserDaoImpl;
 import com.example.todoapp.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class SignUpActivity extends AppCompatActivity {
 
     private UserDao userDao;
@@ -63,10 +66,11 @@ public class SignUpActivity extends AppCompatActivity {
         createAccount.setOnClickListener(view -> {
             final UserProfile userProfile = new UserProfile();
             final String password = confirmPassword.getText().toString().trim();
+            final String hashPassword = hashPassword(userPassword.getText().toString().trim());
 
             userProfile.setName(userName.getText().toString().trim());
             userProfile.setEmail(userEmail.getText().toString().trim());
-            userProfile.setPassword(userPassword.getText().toString().trim());
+            userProfile.setPassword(hashPassword);
 
             if (TextUtils.isEmpty(userProfile.getName()) || TextUtils.isEmpty(
                     userProfile.getEmail()) || TextUtils.isEmpty(userProfile.getPassword())) {
@@ -88,6 +92,24 @@ public class SignUpActivity extends AppCompatActivity {
             }
             finish();
         });
+    }
+
+    private String hashPassword(final String password) {
+        try {
+            final MessageDigest messageDigest = MessageDigest.getInstance(getString(R.string.md5));
+
+            messageDigest.update(password.getBytes());
+            final byte[] digest = messageDigest.digest();
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            for (final byte byteInput : digest) {
+                stringBuilder.append(String.format(getString(R.string.format), byteInput));
+            }
+
+            return stringBuilder.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     private void togglePasswordActivity(final EditText password, final ImageView visibilityToggle) {

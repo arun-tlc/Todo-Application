@@ -20,6 +20,9 @@ import com.example.todoapp.dao.impl.CredentialDaoImpl;
 import com.example.todoapp.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class LoginActivity extends AppCompatActivity {
 
     private CredentialDao credentialDao;
@@ -57,9 +60,10 @@ public class LoginActivity extends AppCompatActivity {
        passwordVisibilityToggle.setOnClickListener(view -> togglePasswordActivity());
        signIn.setOnClickListener(view -> {
            final UserProfile userProfile = new UserProfile();
+           final String hashPassword = hashPassword(userPassword.getText().toString().trim());
 
            userProfile.setEmail(userEmail.getText().toString().trim());
-           userProfile.setPassword(userPassword.getText().toString().trim());
+           userProfile.setPassword(hashPassword);
 
            if (TextUtils.isEmpty(userProfile.getEmail())
                    || TextUtils.isEmpty(userProfile.getPassword())) {
@@ -78,14 +82,36 @@ public class LoginActivity extends AppCompatActivity {
                            intent.putExtra(getString(R.string.user_email), userProfile.getEmail());
                            startActivity(intent);
                        }
-                   }, 1000);
+                   }, 300);
                } else {
                    showSnackBar(getString(R.string.invalid_detail));
-                   userEmail.getText().clear();
-                   userPassword.getText().clear();
+                   clearInputFields();
                }
            }
        });
+    }
+
+    private String hashPassword(final String password) {
+        try {
+            final MessageDigest messageDigest = MessageDigest.getInstance(getString(R.string.md5));
+
+            messageDigest.update(password.getBytes());
+            final byte[] digest = messageDigest.digest();
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            for (final byte byteInput : digest) {
+                stringBuilder.append(String.format(getString(R.string.format), byteInput));
+            }
+
+            return stringBuilder.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    private void clearInputFields() {
+        userEmail.setText("");
+        userPassword.setText("");
     }
 
     private void togglePasswordActivity() {
@@ -113,5 +139,11 @@ public class LoginActivity extends AppCompatActivity {
         snackbar.setTextColor(getResources().getColor(R.color.black));
         snackbar.setBackgroundTint(backGroundColor);
         snackbar.show();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        clearInputFields();
     }
 }

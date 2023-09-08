@@ -12,4 +12,5 @@ public interface ProjectDao {
     void close();
     void updateProjectsOrder(final Project project);
     void delete(Project projectToRemove);
+    List<Project> getAllProjectsForUser(final Long id);
 }

@@ -64,6 +64,7 @@ public class NavigationActivity extends AppCompatActivity {
     private TextView profileIcon;
     private TextView userName;
     private TextView userTitle;
+    private String email;
     private Long userId;
     private LinearLayout addLayout;
     private EditText projectEditText;
@@ -90,13 +91,14 @@ public class NavigationActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.nameListView);
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
+        email = getIntent().getStringExtra(getString(R.string.user_email));
         userTitle = findViewById(R.id.userTitle);
         addLayout = findViewById(R.id.addLayout);
         projectEditText = findViewById(R.id.projectEditText);
         addProject = findViewById(R.id.addProject);
         projectDao = new ProjectDaoImpl(this);
         userDao = new UserDaoImpl(this);
-        userProfile = userDao.getUserProfile();
+        userProfile = userDao.getUserDetails(email);
 
         if (null == projectList) {
             projectList = new ProjectList();
@@ -122,6 +124,7 @@ public class NavigationActivity extends AppCompatActivity {
             userId = userProfile.getId();
         }
         final ImageButton menuButton = findViewById(R.id.menuButton);
+        final ImageButton logout = findViewById(R.id.logout);
 
         menuButton.setOnClickListener(view -> drawerLayout.openDrawer(GravityCompat.START));
         final ImageButton editButton = findViewById(R.id.editIcon);
@@ -139,6 +142,7 @@ public class NavigationActivity extends AppCompatActivity {
                 projectEditText.setText("");
             }
         });
+        logout.setOnClickListener(view -> finish());
         projectAdapter.setOnItemClickListener(position -> {
             final Project selectedProject = projectList.getAllList().get(position);
 
@@ -169,9 +173,7 @@ public class NavigationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
         final Spinner fontSizeSpinner = findViewById(R.id.fontSize);
         final ArrayAdapter<CharSequence> fontSizeAdapter = ArrayAdapter.createFromResource(
@@ -279,7 +281,8 @@ public class NavigationActivity extends AppCompatActivity {
 
 
     private void loadProjectsFromDataBase() {
-        projects = projectDao.getAllProjects();
+//        projects = projectDao.getAllProjects();
+        projects = projectDao.getAllProjectsForUser(userProfile.getId());
 
         projectAdapter.clearProjects();
         projectAdapter.addProjects(projects);
@@ -289,9 +292,9 @@ public class NavigationActivity extends AppCompatActivity {
     private void addProjectToList(final String projectName) {
         final Project project = new Project();
 
-        project.setId(++id);
+//        project.setId(++id);
         project.setLabel(projectName);
-        project.setUserId(userId);
+        project.setUserId(userProfile.getId());
         final long projectOrder = projectAdapter.getItemCount() + 1;
 
         project.setProjectOrder(projectOrder);
@@ -309,11 +312,10 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private void goToProfilePage() {
+        UserProfileSingleton.getInstance().setUserProfile(userProfile);
         final Intent intent = new Intent(NavigationActivity.this,
                 ProfileActivity.class);
 
-        intent.putExtra(String.valueOf(R.string.exist), userName.getText().toString());
-        intent.putExtra("Exist Title", userTitle.getText().toString());
         startActivityIfNeeded(intent, REQUEST_CODE);
     }
 
@@ -328,8 +330,8 @@ public class NavigationActivity extends AppCompatActivity {
         final Intent intent = new Intent(NavigationActivity.this,
                 DragAndDropActivity.class);
 
-        intent.putExtra("Project Id", project.getId());
-        intent.putExtra("Project Name", project.getLabel());
+        intent.putExtra(getString(R.string.project_id), project.getId());
+        intent.putExtra(getString(R.string.project_name), project.getLabel());
         startActivity(intent);
     }
 
@@ -364,9 +366,8 @@ public class NavigationActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
             final UserProfile userProfile = new UserProfile();
 
-            userProfile.setName(data.getStringExtra("User Name"));
-            userProfile.setTitle(data.getStringExtra("User Title"));
-            userId = data.getLongExtra("User Id", 0L);
+            userProfile.setName(data.getStringExtra(getString(R.string.user_name)));
+            userProfile.setTitle(data.getStringExtra(getString(R.string.user_title)));
             userName.setText(userProfile.getName());
             userTitle.setText(userProfile.getTitle());
             profileIcon.setText(userProfile.getProfileIconText());

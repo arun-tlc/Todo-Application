@@ -93,4 +93,14 @@
     <string name="password_update">Password Updated Successfully</string>
     <string name="invalid_email">Invalid Email</string>
     <string name="account">Account created Successfully</string>
+    <string name="edit_user_details">editUserDetails</string>
+    <string name="logout">logout</string>
+    <string name="menu_activity">menuActivity</string>
+    <string name="user_profile">UserProfile</string>
+    <string name="update_success">Update Successfully</string>
+    <string name="user_name">User Name</string>
+    <string name="details_not_modified">User details not changed</string>
+    <string name="md5">MD5</string>
+    <string name="format">%02x</string>
+    <string name="project_id">Project Id</string>
 </resources>

@@ -73,4 +73,28 @@ public class UserDaoImpl implements UserDao {
         return database.update(UserContract.TABLE_NAME, values, String.format("%s = ?",
                 UserContract.COLUMN_ID), new String[] {String.valueOf(userProfile.getId())});
     }
+
+    @SuppressLint({"Recycle", "Range"})
+    @Override
+    public UserProfile getUserDetails(final String email) {
+        final SQLiteDatabase sqLiteDatabase = dataBaseHelper.getReadableDatabase();
+        UserProfile userProfile = null;
+        final Cursor cursor = sqLiteDatabase.query(UserContract.TABLE_NAME,
+                new String[]{UserContract.COLUMN_ID, UserContract.COLUMN_NAME, UserContract.COLUMN_DESCRIPTION},
+                String.format("%s = ?", UserContract.COLUMN_EMAIL), new String[]{email},
+                null, null, null);
+
+        if (null != cursor && cursor.moveToFirst()) {
+            userProfile = new UserProfile();
+
+            userProfile.setId(cursor.getLong(cursor.getColumnIndex(UserContract.COLUMN_ID)));
+            userProfile.setName(cursor.getString(cursor.getColumnIndex(UserContract.COLUMN_NAME)));
+            userProfile.setTitle(cursor.getString(cursor.getColumnIndex(
+                    UserContract.COLUMN_DESCRIPTION)));
+            userProfile.setEmail(email);
+            cursor.close();
+        }
+
+        return userProfile;
+    }
 }
