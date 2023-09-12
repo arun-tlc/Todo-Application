@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.dao.impl.CredentialDaoImpl;
+import com.example.todoapp.model.Credential;
 import com.example.todoapp.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -54,22 +55,23 @@ public class PasswordActivity extends AppCompatActivity {
         confirmPasswordToggle.setOnClickListener(view -> togglePasswordActivity(confirmPassword,
                 confirmPasswordToggle));
         resetPassword.setOnClickListener(view -> {
-            final UserProfile userProfile = new UserProfile();
+//            final UserProfile userProfile = new UserProfile();
+            final Credential userDetail = new Credential();
             final String password = confirmPassword.getText().toString().trim();
 
-            userProfile.setEmail(userEmail.getText().toString().trim());
-            userProfile.setPassword(newPassword.getText().toString().trim());
+            userDetail.setEmail(userEmail.getText().toString().trim());
+            userDetail.setPassword(newPassword.getText().toString().trim());
 
-            if (TextUtils.isEmpty(userProfile.getEmail())
-                    || TextUtils.isEmpty(userProfile.getPassword())) {
+            if (TextUtils.isEmpty(userDetail.getEmail())
+                    || TextUtils.isEmpty(userDetail.getPassword())) {
                 showSnackBar(getString(R.string.fields_fill));
-            } else if(! password.equals(userProfile.getPassword())) {
+            } else if(! password.equals(userDetail.getPassword())) {
                 showSnackBar(getString(R.string.password_mismatch));
             } else {
-                final boolean emailExists = credentialDao.checkEmailExists(userProfile.getEmail());
+                final boolean emailExists = credentialDao.checkEmailExists(userDetail.getEmail());
 
                 if (emailExists) {
-                    final long updatedCredentialRows = credentialDao.updatePassword(userProfile);
+                    final long updatedCredentialRows = credentialDao.updatePassword(userDetail);
 
                     if (0 < updatedCredentialRows) {
                         showSnackBar(getString(R.string.password_update));

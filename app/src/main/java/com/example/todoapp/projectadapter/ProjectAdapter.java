@@ -24,16 +24,10 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
 
     private final List<Project> projects;
     private final ProjectDao projectDao;
-//    private final LayoutInflater inflater;
     private OnItemClickListener onItemClickListener;
 
-//    public interface OnItemClickListener {
-//        void onItemClick(final int position);
-//        void onItemLongClick(final int position);
-//    }
-
     public ProjectAdapter(final List<Project> projects, final ProjectDao projectDao) {
-//        this.inflater = LayoutInflater.from(context);
+
         this.projectDao = projectDao;
         this.projects = projects;
     }
@@ -68,13 +62,6 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
                 onItemClickListener.onItemClick(position);
             }
         });
-//        holder.itemView.setOnLongClickListener(view -> {
-//            if (null != onItemClickListener) {
-//                onItemClickListener.onItemLongClick(position);
-//            }
-//
-//            return true;
-//        });
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -107,9 +94,6 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         projectDao.updateProjectsOrder(toProject);
     }
 
-//    private void updateDataBaseOrder() {
-//        projectDao.updateProjectsOrder(projects);
-//    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         final TextView projectNameTextView;

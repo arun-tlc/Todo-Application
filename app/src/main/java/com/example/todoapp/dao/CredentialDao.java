@@ -1,13 +1,13 @@
 package com.example.todoapp.dao;
 
-import com.example.todoapp.model.UserProfile;
+import com.example.todoapp.model.Credential;
 
 public interface CredentialDao {
 
-    long insert(final UserProfile userProfile);
+    long insert(final Credential signUpDetail);
     void open();
     void close();
-    boolean checkCredentials(final UserProfile userProfile);
-    long updatePassword(final UserProfile userProfile);
+    boolean checkCredentials(final Credential loginDetail);
+    long updatePassword(final Credential userDetail);
     boolean checkEmailExists(final String email);
 }

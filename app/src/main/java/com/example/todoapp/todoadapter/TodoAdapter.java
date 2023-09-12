@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -51,7 +52,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
 
         if (null != typeface) {
             holder.todoTextView.setTypeface(typeface);
-        } else if (0 != fontSize){
+        } else if (0 != fontSize) {
             holder.todoTextView.setTextSize(fontSize);
         }
         holder.bind(todoItem, listener);
@@ -68,7 +69,14 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
 
     @Override
     public void onItemMove(final int fromPosition, final int toPosition) {
+        final TodoItem fromItem = todoItems.get(fromPosition);
+        final TodoItem toItem = todoItems.get(toPosition);
+
         Collections.swap(todoItems, fromPosition, toPosition);
+        fromItem.setItemOrder((long) (toPosition + 1));
+        toItem.setItemOrder((long) (fromPosition + 1));
+        itemDao.updateItemsOrder(fromItem);
+        itemDao.updateItemsOrder(toItem);
         notifyItemMoved(fromPosition, toPosition);
     }
 
@@ -91,6 +99,37 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
             todoTextView = itemView.findViewById(R.id.todoTextView);
             checkBox = itemView.findViewById(R.id.todoCheckBox);
             todoRemoveButton = itemView.findViewById(R.id.todoRemoveButton);
+
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                final int position = getAbsoluteAdapterPosition();
+
+                if (position != RecyclerView.NO_POSITION) {
+                    final TodoItem todoItem = todoItems.get(position);
+
+                    todoItem.setChecked();
+                    todoItem.setStatus(isChecked ? TodoItem.StatusType.COMPLETED
+                            : TodoItem.StatusType.NON_COMPLETED);
+                    todoTextView.setTextColor(todoItem.getStatus() == TodoItem.StatusType.COMPLETED
+                            ? Color.GRAY : Color.BLACK);
+                    itemDao.updateItemsStatus(todoItem);
+                    listener.onCheckBoxClick(todoItem);
+                }
+            });
+            todoRemoveButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final int position = getAbsoluteAdapterPosition();
+
+                    if (position != RecyclerView.NO_POSITION) {
+                        final TodoItem todoItem = todoItems.get(position);
+
+                        todoItems.remove(todoItem);
+                        notifyItemRemoved(position);
+                        itemDao.delete(todoItem.getId());
+                        listener.onCloseIconClick(todoItem);
+                    }
+                }
+            });
         }
 
         public void bind(final TodoItem todoItem, final OnItemClickListener listener) {
@@ -102,6 +141,4 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
             todoRemoveButton.setOnClickListener(view -> listener.onCloseIconClick(todoItem));
         }
     }
-
-
 }

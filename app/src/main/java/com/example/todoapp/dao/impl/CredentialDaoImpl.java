@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.database.DataBaseHelper;
 import com.example.todoapp.database.table.SignUpDetails;
-import com.example.todoapp.model.UserProfile;
+import com.example.todoapp.model.Credential;
 
 public class CredentialDaoImpl implements CredentialDao {
 
@@ -21,11 +21,11 @@ public class CredentialDaoImpl implements CredentialDao {
     }
 
     @Override
-    public long insert(final UserProfile userProfile) {
+    public long insert(final Credential signUpDetail) {
         final ContentValues values = new ContentValues();
 
-        values.put(SignUpDetails.COLUMN_EMAIL, userProfile.getEmail());
-        values.put(SignUpDetails.COLUMN_PASSWORD, userProfile.getPassword());
+        values.put(SignUpDetails.COLUMN_EMAIL, signUpDetail.getEmail());
+        values.put(SignUpDetails.COLUMN_PASSWORD, signUpDetail.getPassword());
 
         return database.insert(SignUpDetails.TABLE_NAME, null, values);
     }
@@ -42,19 +42,19 @@ public class CredentialDaoImpl implements CredentialDao {
 
     @SuppressLint({"Recycle", "Range"})
     @Override
-    public boolean checkCredentials(final UserProfile userProfile) {
+    public boolean checkCredentials(final Credential loginDetail) {
         final SQLiteDatabase sqLiteDatabase = dataBaseHelper.getReadableDatabase();
         final Cursor cursor = sqLiteDatabase.query(SignUpDetails.TABLE_NAME,
                 new String[]{SignUpDetails.COLUMN_PASSWORD},
                 String.format("%s = ?", SignUpDetails.COLUMN_EMAIL),
-                new String[]{userProfile.getEmail()}, null, null, null);
+                new String[]{loginDetail.getEmail()}, null, null, null);
         boolean result = false;
 
         if (null != cursor && cursor.moveToFirst()) {
            final String password = cursor.getString(cursor.getColumnIndex(
                    SignUpDetails.COLUMN_PASSWORD));
 
-           if (password.equals(userProfile.getPassword())) {
+           if (password.equals(loginDetail.getPassword())) {
                result = true;
            }
            cursor.close();
@@ -64,13 +64,13 @@ public class CredentialDaoImpl implements CredentialDao {
     }
 
     @Override
-    public long updatePassword(final UserProfile userProfile) {
+    public long updatePassword(final Credential userDetail) {
         final ContentValues values = new ContentValues();
 
-        values.put(SignUpDetails.COLUMN_PASSWORD, userProfile.getPassword());
+        values.put(SignUpDetails.COLUMN_PASSWORD, userDetail.getPassword());
 
         return database.update(SignUpDetails.TABLE_NAME, values, String.format("%s = ?",
-                SignUpDetails.COLUMN_EMAIL), new String[]{userProfile.getEmail()});
+                SignUpDetails.COLUMN_EMAIL), new String[]{userDetail.getEmail()});
     }
 
     @Override

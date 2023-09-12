@@ -10,7 +10,8 @@ public interface ItemDao {
     List<TodoItem> getAllTodoItems();
     List<TodoItem> getTodoItemsForProject(final Long projectId);
     long delete(final Long id);
-    void update(final TodoItem todoItem);
+    void updateItemsStatus(final TodoItem todoItem);
     void open();
     void close();
+    void updateItemsOrder(final TodoItem fromItem);
 }

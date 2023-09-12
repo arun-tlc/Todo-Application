@@ -1,24 +1,23 @@
 package com.example.todoapp;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.dao.ItemDao;
 import com.example.todoapp.dao.impl.ItemDaoImpl;
@@ -27,23 +26,23 @@ import com.example.todoapp.model.Query;
 import com.example.todoapp.model.Sort;
 import com.example.todoapp.model.TodoItem;
 import com.example.todoapp.model.TodoList;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.example.todoapp.todoadapter.ItemTouchHelperCallBack;
+import com.example.todoapp.todoadapter.OnItemClickListener;
+import com.example.todoapp.todoadapter.TodoAdapter;
+import com.google.android.material.snackbar.Snackbar;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
 public class PaginationActivity extends AppCompatActivity {
 
-    private TableLayout tableLayout;
+    private TodoAdapter todoAdapter;
     private EditText editText;
     private TodoList todoList;
     private Query query;
     private List<TodoItem> todoItems;
     private ItemDao itemDao;
     private Long selectedProjectId;
-    private String selectedProjectName;
     private SearchView searchView;
     private Spinner statusSpinner;
     private Spinner pageFilter;
@@ -54,27 +53,15 @@ public class PaginationActivity extends AppCompatActivity {
     private TextView pageNumber;
     private int currentPage = 1;
     private int pageSize;
-    private static Long id = 0L;
-    private int lastKnownPage;
 
-    /**
-     * <p>
-     * Creates an interaction by listening the touch pad screen of android
-     * </p>
-     *
-     * @param savedInstanceState If the activity is being re-initialized after
-     *                           previously being shut down then this Bundle contains the data it most
-     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
-     */
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.filterlayout);
 
-        tableLayout = findViewById(R.id.tableLayout);
         editText = findViewById(R.id.todoEditText);
-        selectedProjectId = getIntent().getLongExtra("Project Id", 0L);
-        selectedProjectName = getIntent().getStringExtra("Project Name");
+        selectedProjectId = getIntent().getLongExtra(getString(R.string.project_id), 0L);
+        final String selectedProjectName = getIntent().getStringExtra(getString(R.string.project_name));
         todoList = new TodoList();
         query = todoList.getQuery();
         itemDao = new ItemDaoImpl(this);
@@ -82,20 +69,33 @@ public class PaginationActivity extends AppCompatActivity {
         statusSpinner = findViewById(R.id.statusSpinner);
         pageFilter = findViewById(R.id.pageFilter);
         prevButton = findViewById(R.id.previous_button);
+        final RecyclerView recyclerView = findViewById(R.id.recyclerView);
         nextButton = findViewById(R.id.next_button);
         pageNumber = findViewById(R.id.pageNumber);
-        pageSize = Integer.parseInt(pageFilter.getSelectedItem().toString());
         final ImageButton filterButton = findViewById(R.id.filterButton);
+        final Button addButton = findViewById(R.id.button);
+        final ImageButton backToMenu = findViewById(R.id.menuButton);
+        final ImageButton addSymbol = findViewById(R.id.addButton);
+        todoItems = todoList.getAllItems(selectedProjectId);
+        pageSize = Integer.parseInt(pageFilter.getSelectedItem().toString());
 
         if (null != selectedProjectName) {
             final TextView textView = findViewById(R.id.textViewListName);
 
             textView.setText(selectedProjectName);
         }
-        final Button addButton = findViewById(R.id.button);
-        final ImageButton backToMenu = findViewById(R.id.menuButton);
-        final ImageButton addSymbol = findViewById(R.id.addButton);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        todoAdapter = new TodoAdapter(todoItems, itemDao);
 
+        recyclerView.setAdapter(todoAdapter);
+        final ItemTouchHelper.Callback callback = new ItemTouchHelperCallBack(todoAdapter);
+        final ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+
+        touchHelper.attachToRecyclerView(recyclerView);
+        loadTodoItemsFromDataBase();
+        applyFontToAllLayouts();
+        applyFontSize();
+        applyColorToComponent();
         addSymbol.setOnClickListener(view -> {
             if (editText.getVisibility() == View.GONE) {
                 editText.setVisibility(View.VISIBLE);
@@ -108,8 +108,6 @@ public class PaginationActivity extends AppCompatActivity {
         backToMenu.setOnClickListener(view -> onBackPressed());
         addButton.setOnClickListener(view -> addNewTodoItem());
         filterButton.setOnClickListener(view -> {
-            lastKnownPage = currentPage;
-
             if (searchView.getVisibility() == View.GONE) {
                 searchView.setVisibility(View.VISIBLE);
                 statusSpinner.setVisibility(View.VISIBLE);
@@ -120,41 +118,22 @@ public class PaginationActivity extends AppCompatActivity {
                 pageFilter.setVisibility(View.GONE);
             }
         });
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        todoAdapter.setOnClickListener(new OnItemClickListener() {
             @Override
-            public boolean onQueryTextSubmit(final String query) {
-                lastKnownPage = currentPage;
+            public void onCheckBoxClick(TodoItem todoItem) {}
 
-                filterTableLayout(query.toLowerCase());
-
-                return true;
-            }
-
+            @SuppressLint("NotifyDataSetChanged")
             @Override
-            public boolean onQueryTextChange(final String newText) {
-                lastKnownPage = currentPage;
+            public void onCloseIconClick(final TodoItem todoItem) {
+                todoItems.remove(todoItem);
+                todoAdapter.notifyDataSetChanged();
+                itemDao.delete(todoItem.getId());
 
-                filterTableLayout(newText.toLowerCase());
-
-                return true;
-            }
-        });
-        statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(final AdapterView<?> parent, final View view,
-                                       final int position, final long id) {
-                showCompleted = position == 1;
-                showNotCompleted = position == 2;
-
-                filterItemState();
-                refreshTableLayout();
+                if (currentPage > getTotalPages()) {
+                    currentPage = getTotalPages();
+                }
+                refreshLayout();
                 updatePageNumber(pageNumber);
-            }
-
-            @Override
-            public void onNothingSelected(final AdapterView<?> parent) {
-                showCompleted = false;
-                showNotCompleted = false;
             }
         });
         pageFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -163,104 +142,156 @@ public class PaginationActivity extends AppCompatActivity {
                                        final int position, final long id) {
                 pageSize = Integer.parseInt(parent.getItemAtPosition(position).toString());
 
-                refreshTableLayout();
-                updatePageNumber(pageNumber);
-                final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
-
-                if (currentPage > totalPages) {
-                    currentPage = totalPages;
-
-                    refreshTableLayout();
-                    updatePageNumber(pageNumber);
+                if (currentPage > getTotalPages()) {
+                    currentPage = getTotalPages();
                 }
+                refreshLayout();
+                updatePageNumber(pageNumber);
             }
 
             @Override
-            public void onNothingSelected(final AdapterView<?> parent) {}
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+        statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                showCompleted = position == 1;
+                showNotCompleted = position == 2;
+
+                filterItemState();
+                refreshLayout();
+                updatePageNumber(pageNumber);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                showCompleted = false;
+                showNotCompleted = false;
+            }
+        });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(final String query) {
+                filterTableLayout(query.toLowerCase());
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(final String newText) {
+                filterTableLayout(newText.toLowerCase());
+
+                return true;
+            }
         });
         nextButton.setOnClickListener(view -> {
             if ((currentPage * pageSize) < todoItems.size()) {
                 currentPage++;
-                refreshTableLayout();
+                loadTodoItemsFromDataBase();
                 updatePageNumber(pageNumber);
             }
         } );
         prevButton.setOnClickListener(view -> {
             if (currentPage > 1) {
                 currentPage--;
-                refreshTableLayout();
+                loadTodoItemsFromDataBase();
                 updatePageNumber(pageNumber);
             }
         });
-        loadTodoItemsFromDatabase(selectedProjectId);
+    }
+
+    private void loadTodoItemsFromDataBase() {
+        todoItems = itemDao.getTodoItemsForProject(selectedProjectId);
 
         if (! todoItems.isEmpty()) {
-            refreshTableLayout();
+            todoList.setAllItems(todoItems);
+            refreshLayout();
             updatePageNumber(pageNumber);
-            updateButtonVisibility();
         } else {
             pageNumber.setVisibility(View.GONE);
-            prevButton.setVisibility(View.GONE);
             nextButton.setVisibility(View.GONE);
+            prevButton.setVisibility(View.GONE);
         }
     }
 
-    private void loadTodoItemsFromDatabase(final Long selectedProjectId) {
-        todoItems = itemDao.getTodoItemsForProject(selectedProjectId);
+    @SuppressLint("NotifyDataSetChanged")
+    private void addNewTodoItem() {
+        final String todoText = editText.getText().toString();
 
-        if (null != todoItems) {
-            todoList.setAllItems(todoItems);
-            refreshTableLayout();
-            updatePageNumber(pageNumber);
+        if (!todoText.isEmpty()) {
+            final TodoItem todoItem = new TodoItem(todoText);
+            final long itemOrder = todoAdapter.getItemCount() + 1;
+
+            todoItem.setParentId(selectedProjectId);
+            todoItem.setStatus(TodoItem.StatusType.NON_COMPLETED);
+            todoItem.setItemOrder(itemOrder);
+            todoList.add(todoItem);
+            final long todoId = itemDao.insert(todoItem);
+            todoItems = todoList.getAllItems(selectedProjectId);
+            pageNumber.setVisibility(View.VISIBLE);
+            prevButton.setVisibility(View.VISIBLE);
+            nextButton.setVisibility(View.VISIBLE);
+
+            if (-1 == todoId) {
+                showSnackBar(getString(R.string.fail));
+            } else {
+                showSnackBar(getString(R.string.success));
+                todoAdapter.addTodoItems(todoItems);
+            }
         }
+        editText.getText().clear();
+        refreshLayout();
+        updatePageNumber(pageNumber);
+    }
+
+    private void refreshLayout() {
+        final int startIndex = (currentPage - 1) * pageSize;
+        final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
+        final List<TodoItem> currentPageItems = todoItems.subList(startIndex, endIndex);
+
+        todoAdapter.addTodoItems(currentPageItems);
+        updateButtonVisibility();
     }
 
     private void filterItemState() {
         final Filter filterObj = query.getFilterObj();
 
-        filterObj.setAttribute("status");
+        filterObj.setAttribute(getString(R.string.status));
 
         if (showCompleted) {
-            filterObj.setValues(Collections.singletonList("Completed"));
+            filterObj.setValues(Collections.singletonList(getString(R.string.completed)));
         } else if (showNotCompleted) {
-            filterObj.setValues(Collections.singletonList("Not Completed"));
+            filterObj.setValues(Collections.singletonList(getString(R.string.non_completed)));
         } else {
-            filterObj.setValues(Collections.singletonList("All"));
+            filterObj.setValues(Collections.singletonList(getString(R.string.all)));
         }
         setSortingInfo();
         query.setFilterObj(filterObj);
         todoItems = todoList.filterAndSortItems();
 
-        moveToLastPage();
-    }
-
-    private void moveToLastPage() {
-        final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
-        currentPage = todoItems.isEmpty() ? 1 : Math.min(lastKnownPage, totalPages);
-
-        if (todoItems.isEmpty()) {
-            pageNumber.setVisibility(View.GONE);
-            prevButton.setVisibility(View.GONE);
-            nextButton.setVisibility(View.GONE);
-            Toast.makeText(this, R.string.item_check, Toast.LENGTH_SHORT).show();
-        } else {
-            pageNumber.setVisibility(View.VISIBLE);
-            prevButton.setVisibility(View.VISIBLE);
-            nextButton.setVisibility(View.VISIBLE);
+        if (currentPage > getTotalPages()) {
+            currentPage = getTotalPages();
         }
     }
 
     private void setSortingInfo() {
         final Sort sort = query.getSort();
 
-        sort.setAttribute("label");
+        sort.setAttribute(getString(R.string.label));
         sort.setType(Sort.SortType.DESCENDING);
         query.setSort(sort);
     }
 
-    private void updateButtonVisibility() {
-        final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
+    private void filterTableLayout(final String searchItem) {
+        query.setSearch(searchItem);
+        setSortingInfo();
+        todoItems = todoList.filterAndSortItems();
 
+        refreshLayout();
+        updatePageNumber(pageNumber);
+    }
+
+    private void updateButtonVisibility() {
         if (1 == currentPage) {
             prevButton.setColorFilter(Color.GRAY);
             prevButton.setEnabled(false);
@@ -269,7 +300,7 @@ public class PaginationActivity extends AppCompatActivity {
             prevButton.setEnabled(true);
         }
 
-        if (currentPage == totalPages) {
+        if (currentPage == getTotalPages()) {
             nextButton.setColorFilter(Color.GRAY);
             nextButton.setEnabled(false);
         } else {
@@ -278,177 +309,40 @@ public class PaginationActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * <p>
-     *  Updates the page number in the layout
-     * </p>
-     *
-     * @param pageNumber Represents the layout view of the page number
-     */
     @SuppressLint("DefaultLocale")
     private void updatePageNumber(final TextView pageNumber) {
-        final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
-
-        pageNumber.setText(String.format("%d / %d", currentPage, totalPages));
+        pageNumber.setText(String.format(getString(R.string.string_format), currentPage,
+                getTotalPages()));
     }
 
-    /**
-     * <p>
-     * Filters the searched item from the list of item
-     * </p>
-     *
-     * @param searchItem Represents the searched items
-     */
-    private void filterTableLayout(final String searchItem) {
-        tableLayout.removeAllViews();
-        query.setSearch(searchItem);
-        setSortingInfo();
-        todoItems = todoList.filterAndSortItems();
-
-        moveToLastPage();
-        refreshTableLayout();
-        updateButtonVisibility();
-        updatePageNumber(pageNumber);
+    private int getTotalPages() {
+        return (int) Math.ceil((double) todoItems.size() / pageSize);
     }
 
-    /**
-     * <p>
-     * Refreshes the table layout for new list
-     * </p>
-     */
-    private void refreshTableLayout() {
-        tableLayout.removeAllViews();
-        final int startIndex = (currentPage - 1) * pageSize;
-        final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
+    private void showSnackBar(final String message) {
+        final View parentLayout = findViewById(android.R.id.content);
+        final Snackbar snackbar = Snackbar.make(parentLayout, message, Snackbar.LENGTH_SHORT);
 
-        for (int i = startIndex; i < endIndex; i++) {
-            final TodoItem todoItem = todoItems.get(i);
+        snackbar.show();
+    }
 
-            createTableRow(todoItem);
+    private void applyColorToComponent() {
+        final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
+        final RelativeLayout relativeLayout = findViewById(R.id.projectTitle);
+
+        if (defaultColor == R.color.green) {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (defaultColor == R.color.blue) {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.blue));
         }
-        updateButtonVisibility();
     }
 
-    /**
-     * <p>
-     * Adds the items for the todo list
-     * </p>
-     */
-    private void addNewTodoItem() {
-        final String todoText = editText.getText().toString();
-
-        if (! todoText.isEmpty()) {
-            final TodoItem todoItem = new TodoItem(todoText);
-
-            todoItem.setParentId(selectedProjectId);
-            todoItem.setId(++id);
-            todoItem.setStatus(TodoItem.StatusType.NON_COMPLETED);
-            todoList.add(todoItem);
-            final long itemId = itemDao.insert(todoItem);
-            todoItems = todoList.getAllItems(selectedProjectId);
-            final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
-            pageNumber.setVisibility(View.VISIBLE);
-            prevButton.setVisibility(View.VISIBLE);
-            nextButton.setVisibility(View.VISIBLE);
-
-            if (-1 == itemId) {
-                Toast.makeText(this,R.string.fail, Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT).show();
-            }
-
-            if (1 == todoItems.size() % pageSize && currentPage == totalPages - 1) {
-                currentPage = totalPages;
-            }
-            createTableRow(todoItem);
-            editText.getText().clear();
-
-            refreshTableLayout();
-            updatePageNumber(pageNumber);
-        }
-
+    private void applyFontToAllLayouts() {
+        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
     }
 
-    /**
-     * <p>
-     * Creates an row for the table layout
-     * </p>
-     *
-     * @param todoItem Represents {@link TodoItem} object
-     */
-    private void createTableRow(final TodoItem todoItem) {
-        final TableRow tableRow = new TableRow(this);
-
-        tableRow.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
-                TableLayout.LayoutParams.WRAP_CONTENT));
-        final CheckBox checkBox = new CheckBox(this);
-
-        checkBox.setChecked(todoItem.getStatus() == TodoItem.StatusType.COMPLETED);
-        final TextView todoView = new TextView(this);
-
-        todoView.setTextColor(todoItem.getStatus() == TodoItem.StatusType.COMPLETED ? Color.GRAY
-                : Color.BLACK);
-        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            todoItem.setChecked();
-            todoItem.setStatus(isChecked ? TodoItem.StatusType.COMPLETED
-                    : TodoItem.StatusType.NON_COMPLETED);
-            todoView.setTextColor(todoItem.getStatus() == TodoItem.StatusType.COMPLETED ? Color.GRAY
-                    : Color.BLACK);
-        });
-        tableRow.addView(checkBox);
-        todoView.setText(todoItem.getLabel());
-        tableRow.addView(todoView);
-        final ImageView closeIcon = new ImageView(this);
-
-        closeIcon.setImageResource(R.drawable.baseline_close_24);
-        closeIcon.setOnClickListener(view -> removeItem(tableRow, todoItem));
-        tableRow.addView(closeIcon);
-        tableLayout.addView(tableRow);
-        editText.getText().clear();
-    }
-
-    /**
-     * <p>
-     * Removes an item in the table layout
-     * </p>
-     *
-     * @param tableRow Represents table row object
-     */
-    private void removeItem(final TableRow tableRow, final TodoItem todoItem) {
-        final int previousTotalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
-
-        tableLayout.removeView(tableRow);
-        todoList.remove(todoItem.getId());
-
-        if (0 < itemDao.delete(todoItem.getId())) {
-            Toast.makeText(this, R.string.delete, Toast.LENGTH_SHORT).show();
-            todoItems = todoList.getAllItems(null);
-
-            refreshTableLayout();
-            updatePageNumber(pageNumber);
-            updateButtonVisibility();
-        } else {
-            Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
-        }
-
-        if (todoItems.isEmpty()) {
-            pageNumber.setVisibility(View.GONE);
-            prevButton.setVisibility(View.GONE);
-            nextButton.setVisibility(View.GONE);
-        } else {
-            refreshTableLayout();
-            final int totalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
-
-            if (currentPage > totalPages) {
-                currentPage = totalPages;
-            }
-
-            if (previousTotalPages > totalPages) {
-                refreshTableLayout();
-            }
-            updatePageNumber(pageNumber);
-            updateButtonVisibility();
-        }
+    private void applyFontSize() {
+        TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
     }
 
     @Override
@@ -460,12 +354,6 @@ public class PaginationActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
-        if (null != todoItems) {
-            for (final TodoItem todoItem : todoItems) {
-                itemDao.update(todoItem);
-            }
-        }
         itemDao.close();
     }
 }

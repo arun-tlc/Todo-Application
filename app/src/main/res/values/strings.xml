@@ -103,4 +103,9 @@
     <string name="md5">MD5</string>
     <string name="format">%02x</string>
     <string name="project_id">Project Id</string>
+    <string name="completed">Completed</string>
+    <string name="non_completed">Not Completed</string>
+    <string name="all">All</string>
+    <string name="label">label</string>
+    <string name="string_format">%d / %d</string>
 </resources>

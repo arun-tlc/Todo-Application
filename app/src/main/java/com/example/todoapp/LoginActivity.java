@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.dao.impl.CredentialDaoImpl;
+import com.example.todoapp.model.Credential;
 import com.example.todoapp.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -59,17 +60,18 @@ public class LoginActivity extends AppCompatActivity {
        });
        passwordVisibilityToggle.setOnClickListener(view -> togglePasswordActivity());
        signIn.setOnClickListener(view -> {
-           final UserProfile userProfile = new UserProfile();
+//           final UserProfile userProfile = new UserProfile();
+           final Credential loginDetail = new Credential();
            final String hashPassword = hashPassword(userPassword.getText().toString().trim());
 
-           userProfile.setEmail(userEmail.getText().toString().trim());
-           userProfile.setPassword(hashPassword);
+           loginDetail.setEmail(userEmail.getText().toString().trim());
+           loginDetail.setPassword(hashPassword);
 
-           if (TextUtils.isEmpty(userProfile.getEmail())
-                   || TextUtils.isEmpty(userProfile.getPassword())) {
+           if (TextUtils.isEmpty(loginDetail.getEmail())
+                   || TextUtils.isEmpty(loginDetail.getPassword())) {
                showSnackBar(getString(R.string.fields_fill));
            } else {
-               final boolean isAuthenticated = credentialDao.checkCredentials(userProfile);
+               final boolean isAuthenticated = credentialDao.checkCredentials(loginDetail);
 
                if (isAuthenticated) {
                    showSnackBar(getString(R.string.successful_log_in));
@@ -79,7 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                            final Intent intent = new Intent(LoginActivity.this,
                                    NavigationActivity.class);
 
-                           intent.putExtra(getString(R.string.user_email), userProfile.getEmail());
+                           intent.putExtra(getString(R.string.user_email), loginDetail.getEmail());
                            startActivity(intent);
                        }
                    }, 300);

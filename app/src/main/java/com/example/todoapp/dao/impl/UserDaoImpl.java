@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.example.todoapp.dao.UserDao;
 import com.example.todoapp.database.DataBaseHelper;
-import com.example.todoapp.database.table.SignUpDetails;
 import com.example.todoapp.database.table.UserContract;
 import com.example.todoapp.model.UserProfile;
 

@@ -30,6 +30,7 @@ public class ItemDaoImpl implements ItemDao {
         values.put(ItemContract.COLUMN_NAME, todoItem.getLabel());
         values.put(ItemContract.COLUMN_PROJECT_ID, todoItem.getParentId());
         values.put(ItemContract.COLUMN_STATUS, String.valueOf(todoItem.getStatus()).toLowerCase());
+        values.put(ItemContract.COLUMN_ORDER, todoItem.getItemOrder());
 
         return database.insert(ItemContract.TABLE_NAME, null, values);
     }
@@ -74,7 +75,8 @@ public class ItemDaoImpl implements ItemDao {
 
         try (final Cursor cursor = sqLiteDatabase.query(ItemContract.TABLE_NAME, null,
                 String.format("%s = ?", ItemContract.COLUMN_PROJECT_ID),
-                new String[]{String.valueOf(projectId)}, null, null, null)) {
+                new String[]{String.valueOf(projectId)}, null, null,
+                ItemContract.COLUMN_ORDER)) {
 
             if (null != cursor && cursor.moveToFirst()) {
                 do {
@@ -104,7 +106,7 @@ public class ItemDaoImpl implements ItemDao {
     }
 
     @Override
-    public void update(final TodoItem todoItem) {
+    public void updateItemsStatus(final TodoItem todoItem) {
         final ContentValues values = new ContentValues();
 
         values.put(ItemContract.COLUMN_STATUS, String.valueOf(todoItem.getStatus()).toLowerCase());
@@ -120,5 +122,14 @@ public class ItemDaoImpl implements ItemDao {
     @Override
     public void close() {
         dataBaseHelper.close();
+    }
+
+    @Override
+    public void updateItemsOrder(final TodoItem todoItem) {
+        final ContentValues values = new ContentValues();
+
+        values.put(ItemContract.COLUMN_ORDER, todoItem.getItemOrder());
+        database.update(ItemContract.TABLE_NAME, values, String.format("%s = ?",
+                ItemContract.COLUMN_ID), new String[]{String.valueOf(todoItem.getId())});
     }
 }

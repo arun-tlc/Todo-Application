@@ -50,22 +50,17 @@ import java.util.List;
 public class NavigationActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
-    private RecyclerView recyclerView;
     private ProjectAdapter projectAdapter;
     private List<Project> projects;
     private UserProfile userProfile;
-    private UserDao userDao;
     private ProjectList projectList;
     private Button addProject;
     private NavigationController navigationController;
     private ProjectDao projectDao;
-    private static Long id = 0L;
     private static final int REQUEST_CODE = 1;
     private TextView profileIcon;
     private TextView userName;
     private TextView userTitle;
-    private String email;
-    private Long userId;
     private LinearLayout addLayout;
     private EditText projectEditText;
     private boolean isFontFamilyItemSelected;
@@ -88,16 +83,16 @@ public class NavigationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         drawerLayout = findViewById(R.id.drawerLayout);
-        recyclerView = findViewById(R.id.nameListView);
+        final RecyclerView recyclerView = findViewById(R.id.nameListView);
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
-        email = getIntent().getStringExtra(getString(R.string.user_email));
+        final String email = getIntent().getStringExtra(getString(R.string.user_email));
         userTitle = findViewById(R.id.userTitle);
         addLayout = findViewById(R.id.addLayout);
         projectEditText = findViewById(R.id.projectEditText);
         addProject = findViewById(R.id.addProject);
         projectDao = new ProjectDaoImpl(this);
-        userDao = new UserDaoImpl(this);
+        final UserDao userDao = new UserDaoImpl(this);
         userProfile = userDao.getUserDetails(email);
 
         if (null == projectList) {
@@ -121,7 +116,6 @@ public class NavigationActivity extends AppCompatActivity {
             userName.setText(userProfile.getName());
             userTitle.setText(userProfile.getTitle());
             profileIcon.setText(userProfile.getProfileIconText());
-            userId = userProfile.getId();
         }
         final ImageButton menuButton = findViewById(R.id.menuButton);
         final ImageButton logout = findViewById(R.id.logout);
@@ -263,25 +257,17 @@ public class NavigationActivity extends AppCompatActivity {
         switch (position) {
             case 0:
                 return R.font.arial_black;
-//                setTheme(R.style.ArialBlack);
-//                break;
             case 1:
                 return R.font.cikal_bakal;
-//                setTheme((R.style.CikalBakal));
-//                break;
             case 2:
                 return R.font.times_new;
-//                setTheme(R.style.TimesNewRoman);
-//                break;
             default:
                 return R.font.font;
-//                setTheme(R.style.Theme_TodoApp);
         }
     }
 
 
     private void loadProjectsFromDataBase() {
-//        projects = projectDao.getAllProjects();
         projects = projectDao.getAllProjectsForUser(userProfile.getId());
 
         projectAdapter.clearProjects();
@@ -292,7 +278,6 @@ public class NavigationActivity extends AppCompatActivity {
     private void addProjectToList(final String projectName) {
         final Project project = new Project();
 
-//        project.setId(++id);
         project.setLabel(projectName);
         project.setUserId(userProfile.getId());
         final long projectOrder = projectAdapter.getItemCount() + 1;
@@ -328,7 +313,7 @@ public class NavigationActivity extends AppCompatActivity {
      */
     public void goToItemListPage(final Project project) {
         final Intent intent = new Intent(NavigationActivity.this,
-                DragAndDropActivity.class);
+                PaginationActivity.class);
 
         intent.putExtra(getString(R.string.project_id), project.getId());
         intent.putExtra(getString(R.string.project_name), project.getLabel());

@@ -35,6 +35,7 @@ public class TodoList {
     }
 
     public void setAllItems(final List<TodoItem> todoItemList) {
+        todoItems.clear();
         todoItems.addAll(todoItemList);
     }
 

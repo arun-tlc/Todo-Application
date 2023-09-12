@@ -26,7 +26,6 @@
         <activity android:name=".NavigationActivity"/>
         <activity android:name=".PaginationActivity"/>
         <activity android:name=".ProfileActivity"/>
-        <activity android:name=".DragAndDropActivity"/>
     </application>
 
 </manifest>

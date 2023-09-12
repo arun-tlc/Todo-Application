@@ -56,28 +56,31 @@ public class ProfileActivity extends AppCompatActivity {
         final String editedName = userName.getText().toString();
         final String editedTitle = userTitle.getText().toString();
 
-        if (!userProfile.getName().equals(editedName)
-                || !userProfile.getTitle().equals(editedTitle)) {
+        if (null != userProfile) {
+            final String currentName = null != userProfile.getName() ? userProfile.getName() : "";
+            final String currentTitle = null != userProfile.getTitle() ? userProfile.getTitle() : "";
 
-            userProfile.setName(editedName);
-            userProfile.setTitle(editedTitle);
-            profileIcon.setText(userProfile.getProfileIconText());
-            final long updatedUserRows = userDao.update(userProfile);
+            if (!currentName.equals(editedName) || !currentTitle.equals(editedTitle)) {
+                userProfile.setName(editedName);
+                userProfile.setTitle(editedTitle);
+                profileIcon.setText(userProfile.getProfileIconText());
+                final long updatedUserRows = userDao.update(userProfile);
 
-            if (0 > updatedUserRows) {
-                showSnackBar(getString(R.string.fail));
+                if (0 > updatedUserRows) {
+                    showSnackBar(getString(R.string.fail));
+                } else {
+                    showSnackBar(getString(R.string.update_success));
+                    resultantIntent.putExtra(getString(R.string.user_name), userProfile.getName());
+                    resultantIntent.putExtra(getString(R.string.user_title), userProfile.getTitle());
+                    setResult(RESULT_OK, resultantIntent);
+                    finish();
+                }
+                applyFontToAllLayouts();
+                applyFontSize();
+                applyColorToComponent();
             } else {
-                showSnackBar(getString(R.string.update_success));
-                resultantIntent.putExtra(getString(R.string.user_name), userProfile.getName());
-                resultantIntent.putExtra(getString(R.string.user_title), userProfile.getTitle());
-                setResult(RESULT_OK, resultantIntent);
-                finish();
+                showSnackBar(getString(R.string.details_not_modified));
             }
-            applyFontToAllLayouts();
-            applyFontSize();
-            applyColorToComponent();
-        } else {
-            showSnackBar(getString(R.string.details_not_modified));
         }
     }
 

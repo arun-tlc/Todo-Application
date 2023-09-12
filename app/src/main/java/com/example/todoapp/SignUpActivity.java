@@ -18,6 +18,7 @@ import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.dao.UserDao;
 import com.example.todoapp.dao.impl.CredentialDaoImpl;
 import com.example.todoapp.dao.impl.UserDaoImpl;
+import com.example.todoapp.model.Credential;
 import com.example.todoapp.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -65,21 +66,23 @@ public class SignUpActivity extends AppCompatActivity {
                 confirmPasswordVisibility));
         createAccount.setOnClickListener(view -> {
             final UserProfile userProfile = new UserProfile();
+            final Credential signUpDetail = new Credential();
             final String password = confirmPassword.getText().toString().trim();
             final String hashPassword = hashPassword(userPassword.getText().toString().trim());
 
             userProfile.setName(userName.getText().toString().trim());
             userProfile.setEmail(userEmail.getText().toString().trim());
-            userProfile.setPassword(hashPassword);
+            signUpDetail.setEmail(userEmail.getText().toString().trim());
+            signUpDetail.setPassword(hashPassword);
 
             if (TextUtils.isEmpty(userProfile.getName()) || TextUtils.isEmpty(
-                    userProfile.getEmail()) || TextUtils.isEmpty(userProfile.getPassword())) {
+                    signUpDetail.getEmail()) || TextUtils.isEmpty(signUpDetail.getPassword())) {
                 showSnackBar(getString(R.string.fields_fill));
-            } else if (! password.equals(userProfile.getPassword())) {
+            } else if (! password.equals(signUpDetail.getPassword())) {
                 showSnackBar(getString(R.string.password_mismatch));
             }
             final long userId = userDao.insert(userProfile);
-            final long credentialId = credentialDao.insert(userProfile);
+            final long credentialId = credentialDao.insert(signUpDetail);
 
             if (-1 != userId && -1 != credentialId) {
                 showSnackBar(getString(R.string.account));

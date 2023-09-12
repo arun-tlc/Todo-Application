@@ -35,7 +35,6 @@ public class ProjectDaoImpl implements ProjectDao {
 
     @Override
     public void updateProjectsOrder(final Project project) {
-
         final ContentValues values = new ContentValues();
 
         values.put(ProjectContract.COLUMN_ORDER, project.getProjectOrder());
