@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.todoapp.backendservice.AuthenticationService;
 import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.dao.UserDao;
 import com.example.todoapp.dao.impl.CredentialDaoImpl;
@@ -33,9 +34,12 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText userEmail;
     private EditText userPassword;
     private EditText confirmPassword;
+    private EditText userTitle;
+    private EditText userHint;
     private boolean isPasswordVisible;
     private ImageView passwordVisibility;
     private ImageView confirmPasswordVisibility;
+    private AuthenticationService authenticationService;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -45,6 +49,8 @@ public class SignUpActivity extends AppCompatActivity {
 
         userName = findViewById(R.id.signUpName);
         userEmail = findViewById(R.id.signUpEmail);
+        userTitle = findViewById(R.id.signUpTitle);
+        userHint = findViewById(R.id.userHint);
         userPassword = findViewById(R.id.signUpPassword);
         confirmPassword = findViewById(R.id.signUpConfirmPassword);
         passwordVisibility = findViewById(R.id.passwordVisibility);
@@ -72,28 +78,45 @@ public class SignUpActivity extends AppCompatActivity {
 
             userProfile.setName(userName.getText().toString().trim());
             userProfile.setEmail(userEmail.getText().toString().trim());
+            userProfile.setTitle(userTitle.getText().toString().trim());
+            signUpDetail.setHint(userHint.getText().toString().trim());
             signUpDetail.setEmail(userEmail.getText().toString().trim());
-            signUpDetail.setPassword(hashPassword);
+            signUpDetail.setPassword(userPassword.getText().toString().trim());
 
-            if (TextUtils.isEmpty(userProfile.getName()) || TextUtils.isEmpty(
-                    signUpDetail.getEmail()) || TextUtils.isEmpty(signUpDetail.getPassword())) {
+            if (TextUtils.isEmpty(userProfile.getName()) || TextUtils.isEmpty(signUpDetail.getEmail())
+                    || TextUtils.isEmpty(signUpDetail.getPassword())
+                    || TextUtils.isEmpty(signUpDetail.getHint()) || TextUtils.isEmpty(userProfile.getTitle())) {
                 showSnackBar(getString(R.string.fields_fill));
-            } else if (! password.equals(signUpDetail.getPassword())) {
+            } else if (!password.equals(signUpDetail.getPassword())) {
                 showSnackBar(getString(R.string.password_mismatch));
-            }
-            final long userId = userDao.insert(userProfile);
-            final long credentialId = credentialDao.insert(signUpDetail);
-
-            if (-1 != userId && -1 != credentialId) {
-                showSnackBar(getString(R.string.account));
-                userName.setText("");
-                userEmail.setText("");
-                userPassword.setText("");
-                confirmPassword.setText("");
             } else {
-                showSnackBar(getString(R.string.fail));
+                authenticationService = new AuthenticationService("http://192.168.1.9:8080/");
+
+                authenticationService.signUp(userProfile, signUpDetail, new AuthenticationService.ApiResponseCallBack() {
+                    @Override
+                    public void onSuccess(String responseBody) {
+                        showSnackBar(getString(R.string.account));
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        showSnackBar(String.format("Request Failed : %s", errorMessage));
+                    }
+                });
             }
-            finish();
+//            final long userId = userDao.insert(userProfile);
+//            final long credentialId = credentialDao.insert(signUpDetail);
+//
+//            if (-1 != userId && -1 != credentialId) {
+//                showSnackBar(getString(R.string.account));
+//                userName.setText("");
+//                userEmail.setText("");
+//                userPassword.setText("");
+//                confirmPassword.setText("");
+//            } else {
+//                showSnackBar(getString(R.string.fail));
+//            }
+//            finish();
         });
     }
 

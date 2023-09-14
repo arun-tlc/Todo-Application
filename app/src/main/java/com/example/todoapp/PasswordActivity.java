@@ -13,10 +13,10 @@ import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.todoapp.backendservice.AuthenticationService;
 import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.dao.impl.CredentialDaoImpl;
 import com.example.todoapp.model.Credential;
-import com.example.todoapp.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
 public class PasswordActivity extends AppCompatActivity {
@@ -24,6 +24,8 @@ public class PasswordActivity extends AppCompatActivity {
     private EditText userEmail;
     private EditText newPassword;
     private EditText confirmPassword;
+    private EditText oldHint;
+    private EditText newHint;
     private CredentialDao credentialDao;
     private boolean isPasswordVisible;
     private ImageView newPasswordToggle;
@@ -42,6 +44,8 @@ public class PasswordActivity extends AppCompatActivity {
         userEmail = findViewById(R.id.emailEdit);
         newPassword = findViewById(R.id.newPasswordEdit);
         confirmPassword = findViewById(R.id.confirmPasswordEdit);
+        oldHint = findViewById(R.id.existingHint);
+        newHint = findViewById(R.id.newUserHint);
         credentialDao = new CredentialDaoImpl(this);
 
         cancel.setOnClickListener(view -> {
@@ -58,36 +62,53 @@ public class PasswordActivity extends AppCompatActivity {
 //            final UserProfile userProfile = new UserProfile();
             final Credential userDetail = new Credential();
             final String password = confirmPassword.getText().toString().trim();
+            final String hint = newHint.getText().toString().trim();
 
             userDetail.setEmail(userEmail.getText().toString().trim());
             userDetail.setPassword(newPassword.getText().toString().trim());
+            userDetail.setHint(oldHint.getText().toString().trim());
 
             if (TextUtils.isEmpty(userDetail.getEmail())
-                    || TextUtils.isEmpty(userDetail.getPassword())) {
+                    || TextUtils.isEmpty(userDetail.getPassword())
+                    || TextUtils.isEmpty(userDetail.getHint()) || TextUtils.isEmpty(hint)) {
                 showSnackBar(getString(R.string.fields_fill));
             } else if(! password.equals(userDetail.getPassword())) {
                 showSnackBar(getString(R.string.password_mismatch));
             } else {
-                final boolean emailExists = credentialDao.checkEmailExists(userDetail.getEmail());
+                final AuthenticationService authenticationService = new AuthenticationService(
+                        "http://192.168.1.9:8080/");
 
-                if (emailExists) {
-                    final long updatedCredentialRows = credentialDao.updatePassword(userDetail);
-
-                    if (0 < updatedCredentialRows) {
+                authenticationService.resetPassword(userDetail, hint, new AuthenticationService.ApiResponseCallBack() {
+                    @Override
+                    public void onSuccess(String responseBody) {
                         showSnackBar(getString(R.string.password_update));
-                        userEmail.setText("");
-                        newPassword.setText("");
-                        confirmPassword.setText("");
-                        finish();
-                    } else {
-                        showSnackBar(getString(R.string.fail));
                     }
-                } else {
-                    showSnackBar(getString(R.string.invalid_email));
-                    userEmail.setText("");
-                    newPassword.setText("");
-                    confirmPassword.setText("");
-                }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        showSnackBar(String.format("Request Failed : %s", errorMessage));
+                    }
+                });
+//                final boolean emailExists = credentialDao.checkEmailExists(userDetail.getEmail());
+//
+//                if (emailExists) {
+//                    final long updatedCredentialRows = credentialDao.updatePassword(userDetail);
+//
+//                    if (0 < updatedCredentialRows) {
+//                        showSnackBar(getString(R.string.password_update));
+//                        userEmail.setText("");
+//                        newPassword.setText("");
+//                        confirmPassword.setText("");
+//                        finish();
+//                    } else {
+//                        showSnackBar(getString(R.string.fail));
+//                    }
+//                } else {
+//                    showSnackBar(getString(R.string.invalid_email));
+//                    userEmail.setText("");
+//                    newPassword.setText("");
+//                    confirmPassword.setText("");
+//                }
             }
         });
     }

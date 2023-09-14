@@ -108,4 +108,8 @@
     <string name="all">All</string>
     <string name="label">label</string>
     <string name="string_format">%d / %d</string>
+    <string name="signup_title">Title</string>
+    <string name="hint">Hint</string>
+    <string name="old_hint">Old Hint</string>
+    <string name="new_hint">New Hint</string>
 </resources>

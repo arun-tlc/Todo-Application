@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
@@ -15,10 +14,10 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.todoapp.backendservice.AuthenticationService;
 import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.dao.impl.CredentialDaoImpl;
 import com.example.todoapp.model.Credential;
-import com.example.todoapp.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.security.MessageDigest;
@@ -65,30 +64,46 @@ public class LoginActivity extends AppCompatActivity {
            final String hashPassword = hashPassword(userPassword.getText().toString().trim());
 
            loginDetail.setEmail(userEmail.getText().toString().trim());
-           loginDetail.setPassword(hashPassword);
+           loginDetail.setPassword(userPassword.getText().toString().trim());
 
            if (TextUtils.isEmpty(loginDetail.getEmail())
                    || TextUtils.isEmpty(loginDetail.getPassword())) {
                showSnackBar(getString(R.string.fields_fill));
            } else {
-               final boolean isAuthenticated = credentialDao.checkCredentials(loginDetail);
+               final AuthenticationService authenticationService = new AuthenticationService(
+                       "http://192.168.1.9:8080/");
 
-               if (isAuthenticated) {
-                   showSnackBar(getString(R.string.successful_log_in));
-                   new Handler().postDelayed(new Runnable() {
-                       @Override
-                       public void run() {
-                           final Intent intent = new Intent(LoginActivity.this,
-                                   NavigationActivity.class);
+               authenticationService.login(loginDetail, new AuthenticationService.ApiResponseCallBack() {
+                   @Override
+                   public void onSuccess(String responseBody) {
 
-                           intent.putExtra(getString(R.string.user_email), loginDetail.getEmail());
-                           startActivity(intent);
-                       }
-                   }, 300);
-               } else {
-                   showSnackBar(getString(R.string.invalid_detail));
-                   clearInputFields();
-               }
+                   }
+
+                   @Override
+                   public void onError(String errorMessage) {
+
+                   }
+               });
+
+//               final boolean isAuthenticated = credentialDao.checkCredentials(loginDetail);
+//
+//               if (isAuthenticated) {
+
+//                   showSnackBar(getString(R.string.successful_log_in));
+//                   new Handler().postDelayed(new Runnable() {
+//                       @Override
+//                       public void run() {
+//                           final Intent intent = new Intent(LoginActivity.this,
+//                                   NavigationActivity.class);
+//
+//                           intent.putExtra(getString(R.string.user_email), loginDetail.getEmail());
+//                           startActivity(intent);
+//                       }
+//                   }, 300);
+//               } else {
+//                   showSnackBar(getString(R.string.invalid_detail));
+//                   clearInputFields();
+//               }
            }
        });
     }

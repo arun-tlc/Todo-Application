@@ -5,6 +5,7 @@ public class Credential {
     private Long id;
     private String email;
     private String password;
+    private String hint;
 
     public Long getId() {
         return id;
@@ -28,5 +29,13 @@ public class Credential {
 
     public void setPassword(final String password) {
         this.password = password;
+    }
+
+    public String getHint() {
+        return hint;
+    }
+
+    public void setHint(final String hint) {
+        this.hint = hint;
     }
 }
