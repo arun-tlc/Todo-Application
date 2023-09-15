@@ -76,7 +76,7 @@ public class PasswordActivity extends AppCompatActivity {
                 showSnackBar(getString(R.string.password_mismatch));
             } else {
                 final AuthenticationService authenticationService = new AuthenticationService(
-                        "http://192.168.1.9:8080/");
+                        getString(R.string.base_url));
 
                 authenticationService.resetPassword(userDetail, hint, new AuthenticationService.ApiResponseCallBack() {
                     @Override
@@ -86,7 +86,7 @@ public class PasswordActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(String errorMessage) {
-                        showSnackBar(String.format("Request Failed : %s", errorMessage));
+                        showSnackBar(String.format(getString(R.string.request_failed), errorMessage));
                     }
                 });
 //                final boolean emailExists = credentialDao.checkEmailExists(userDetail.getEmail());
@@ -110,6 +110,7 @@ public class PasswordActivity extends AppCompatActivity {
 //                    confirmPassword.setText("");
 //                }
             }
+            finish();
         });
     }
 

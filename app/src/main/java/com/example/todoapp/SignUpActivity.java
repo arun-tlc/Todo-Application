@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
@@ -90,9 +91,10 @@ public class SignUpActivity extends AppCompatActivity {
             } else if (!password.equals(signUpDetail.getPassword())) {
                 showSnackBar(getString(R.string.password_mismatch));
             } else {
-                authenticationService = new AuthenticationService("http://192.168.1.9:8080/");
+                authenticationService = new AuthenticationService(getString(R.string.base_url));
 
-                authenticationService.signUp(userProfile, signUpDetail, new AuthenticationService.ApiResponseCallBack() {
+                authenticationService.signUp(userProfile, signUpDetail,
+                        new AuthenticationService.ApiResponseCallBack() {
                     @Override
                     public void onSuccess(String responseBody) {
                         showSnackBar(getString(R.string.account));
@@ -100,7 +102,7 @@ public class SignUpActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(String errorMessage) {
-                        showSnackBar(String.format("Request Failed : %s", errorMessage));
+                        showSnackBar(String.format(getString(R.string.request_failed), errorMessage));
                     }
                 });
             }
@@ -116,7 +118,12 @@ public class SignUpActivity extends AppCompatActivity {
 //            } else {
 //                showSnackBar(getString(R.string.fail));
 //            }
-//            finish();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    finish();
+                }
+            }, 300);
         });
     }
 

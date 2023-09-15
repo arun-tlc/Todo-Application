@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
@@ -19,6 +20,9 @@ import com.example.todoapp.dao.CredentialDao;
 import com.example.todoapp.dao.impl.CredentialDaoImpl;
 import com.example.todoapp.model.Credential;
 import com.google.android.material.snackbar.Snackbar;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -71,12 +75,28 @@ public class LoginActivity extends AppCompatActivity {
                showSnackBar(getString(R.string.fields_fill));
            } else {
                final AuthenticationService authenticationService = new AuthenticationService(
-                       "http://192.168.1.9:8080/");
+                       getString(R.string.base_url));
 
                authenticationService.login(loginDetail, new AuthenticationService.ApiResponseCallBack() {
                    @Override
-                   public void onSuccess(String responseBody) {
+                   public void onSuccess(final String responseBody) {
+                       showSnackBar(getString(R.string.successful_log_in));
 
+                       try {
+                           final JSONObject jsonObject = new JSONObject(responseBody);
+                           final JSONObject data = jsonObject.getJSONObject(getString(R.string.data));
+                           final String token = data.getString(getString(R.string.token));
+
+                           new Handler().postDelayed(() -> {
+                               final Intent intent = new Intent(LoginActivity.this,
+                                       NavigationActivity.class);
+
+                               intent.putExtra(getString(R.string.token), token);
+                               startActivity(intent);
+                           }, 300);
+                       } catch (JSONException e) {
+                           throw new RuntimeException(e);
+                       }
                    }
 
                    @Override

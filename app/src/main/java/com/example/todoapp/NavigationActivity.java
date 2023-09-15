@@ -86,14 +86,15 @@ public class NavigationActivity extends AppCompatActivity {
         final RecyclerView recyclerView = findViewById(R.id.nameListView);
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
-        final String email = getIntent().getStringExtra(getString(R.string.user_email));
+//        final String email = getIntent().getStringExtra(getString(R.string.user_email));
+        final String token = getIntent().getStringExtra(getString(R.string.token));
         userTitle = findViewById(R.id.userTitle);
         addLayout = findViewById(R.id.addLayout);
         projectEditText = findViewById(R.id.projectEditText);
         addProject = findViewById(R.id.addProject);
         projectDao = new ProjectDaoImpl(this);
         final UserDao userDao = new UserDaoImpl(this);
-        userProfile = userDao.getUserDetails(email);
+//        userProfile = userDao.getUserDetails(email);
 
         if (null == projectList) {
             projectList = new ProjectList();
@@ -268,10 +269,12 @@ public class NavigationActivity extends AppCompatActivity {
 
 
     private void loadProjectsFromDataBase() {
-        projects = projectDao.getAllProjectsForUser(userProfile.getId());
+//        projects = projectDao.getAllProjectsForUser(userProfile.getId());
 
-        projectAdapter.clearProjects();
-        projectAdapter.addProjects(projects);
+        if (null != projects) {
+            projectAdapter.clearProjects();
+            projectAdapter.addProjects(projects);
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
