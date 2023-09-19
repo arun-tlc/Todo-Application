@@ -62,7 +62,7 @@ public class NavigationController {
      * @param project Represents the project
      */
     public void addNewProject(final Project project) {
-        if (! projectService.projectExists(project.getLabel())) {
+        if (! projectService.projectExists(project.getName())) {
             projectService.addProject(project);
         } else {
             activity.showProjectExistMessage();

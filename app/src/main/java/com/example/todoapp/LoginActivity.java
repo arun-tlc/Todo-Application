@@ -101,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
 
                    @Override
                    public void onError(String errorMessage) {
-
+                       showSnackBar(errorMessage);
                    }
                });
 

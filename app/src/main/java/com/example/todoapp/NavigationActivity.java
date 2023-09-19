@@ -25,6 +25,8 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.todoapp.backendservice.AuthenticationService;
+import com.example.todoapp.backendservice.TodoProjectService;
 import com.example.todoapp.projectadapter.DragItemTouchHelper;
 import com.example.todoapp.projectadapter.ProjectAdapter;
 import com.example.todoapp.controller.NavigationController;
@@ -36,6 +38,7 @@ import com.example.todoapp.model.Project;
 import com.example.todoapp.model.ProjectList;
 import com.example.todoapp.model.UserProfile;
 import com.example.todoapp.service.ProjectService;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
@@ -54,6 +57,7 @@ public class NavigationActivity extends AppCompatActivity {
     private List<Project> projects;
     private UserProfile userProfile;
     private ProjectList projectList;
+    private String token;
     private Button addProject;
     private NavigationController navigationController;
     private ProjectDao projectDao;
@@ -87,7 +91,7 @@ public class NavigationActivity extends AppCompatActivity {
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
 //        final String email = getIntent().getStringExtra(getString(R.string.user_email));
-        final String token = getIntent().getStringExtra(getString(R.string.token));
+        token = getIntent().getStringExtra(getString(R.string.token));
         userTitle = findViewById(R.id.userTitle);
         addLayout = findViewById(R.id.addLayout);
         projectEditText = findViewById(R.id.projectEditText);
@@ -280,23 +284,40 @@ public class NavigationActivity extends AppCompatActivity {
     @SuppressLint("NotifyDataSetChanged")
     private void addProjectToList(final String projectName) {
         final Project project = new Project();
+        final TodoProjectService projectService = new TodoProjectService(
+                getString(R.string.base_url), token);
 
-        project.setLabel(projectName);
-        project.setUserId(userProfile.getId());
-        final long projectOrder = projectAdapter.getItemCount() + 1;
-
-        project.setProjectOrder(projectOrder);
+        project.setName(projectName);
+        project.setDescription("description");
         navigationController.addNewProject(project);
-        final long projectId = projectDao.insert(project);
+        projectService.create(project, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {
+                showSnackBar(getString(R.string.success));
 
-        if (-1 == projectId) {
-            Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT)
-                    .show();
+                projectAdapter.notifyDataSetChanged();
+            }
 
-            projectAdapter.notifyDataSetChanged();
-        }
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+//        project.setUserId(userProfile.getId());
+//        final long projectOrder = projectAdapter.getItemCount() + 1;
+//
+//        project.setProjectOrder(projectOrder);
+//        navigationController.addNewProject(project);
+//        final long projectId = projectDao.insert(project);
+//
+//        if (-1 == projectId) {
+//            Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT)
+//                    .show();
+//
+//            projectAdapter.notifyDataSetChanged();
+//        }
     }
 
     private void goToProfilePage() {
@@ -319,7 +340,7 @@ public class NavigationActivity extends AppCompatActivity {
                 PaginationActivity.class);
 
         intent.putExtra(getString(R.string.project_id), project.getId());
-        intent.putExtra(getString(R.string.project_name), project.getLabel());
+        intent.putExtra(getString(R.string.project_name), project.getName());
         startActivity(intent);
     }
 
@@ -360,6 +381,13 @@ public class NavigationActivity extends AppCompatActivity {
             userTitle.setText(userProfile.getTitle());
             profileIcon.setText(userProfile.getProfileIconText());
         }
+    }
+
+    private void showSnackBar(final String message) {
+        final View parentLayout = findViewById(android.R.id.content);
+        final Snackbar snackbar = Snackbar.make(parentLayout, message, Snackbar.LENGTH_SHORT);
+
+        snackbar.show();
     }
 
     @Override
