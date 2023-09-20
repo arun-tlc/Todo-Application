@@ -56,7 +56,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         } else if (0 != fontSize) {
             holder.projectNameTextView.setTextSize(fontSize);
         }
-        holder.projectNameTextView.setText(project.getLabel());
+        holder.projectNameTextView.setText(project.getName());
         holder.itemView.setOnClickListener(view -> {
             if (null != onItemClickListener) {
                 onItemClickListener.onItemClick(position);
@@ -109,7 +109,8 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
                 public void onClick(View v) {
                     final int position = getAbsoluteAdapterPosition();
 
-                    if (position != RecyclerView.NO_POSITION) {
+                    if (position != RecyclerView.NO_POSITION && null != onItemClickListener) {
+                        onItemClickListener.onRemoveButtonClick(position);
                         final Project projectToRemove = projects.get(position);
 
                         removeProject(projectToRemove);
@@ -125,7 +126,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         if (-1 != position) {
             projects.remove(position);
             notifyItemRemoved(position);
-            projectDao.delete(projectToRemove);
+//            projectDao.delete(projectToRemove);
         }
     }
 }

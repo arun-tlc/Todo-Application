@@ -8,11 +8,11 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class ProjectInterceptor implements Interceptor {
+public class AuthInterceptor implements Interceptor {
 
     private final String accessToken;
 
-    public ProjectInterceptor(final String accessToken) {
+    public AuthInterceptor(final String accessToken) {
         this.accessToken = accessToken;
     }
 

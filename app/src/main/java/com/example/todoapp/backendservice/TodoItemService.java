@@ -2,8 +2,6 @@ package com.example.todoapp.backendservice;
 
 import androidx.annotation.NonNull;
 
-import com.example.todoapp.model.Project;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,14 +15,14 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class TodoProjectService {
+public class TodoItemService {
 
-    private final ProjectApiService apiService;
+    private final ItemApiService apiService;
 
-    public TodoProjectService(final String baseUrl, final String accessToken) {
+    public TodoItemService(final String baseUrl, final String accessToken) {
         final OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
-        httpClient.addInterceptor(new ProjectInterceptor(accessToken));
+        httpClient.addInterceptor(new AuthInterceptor(accessToken));
         final OkHttpClient client = httpClient.build();
         final Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -32,12 +30,11 @@ public class TodoProjectService {
                 .client(client)
                 .build();
 
-        apiService = retrofit.create(ProjectApiService.class);
+        apiService = retrofit.create(ItemApiService.class);
     }
 
-    public void create(final Project project,
-                       final AuthenticationService.ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.create(project);
+    public void getAll(final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.getAll();
 
         executeRequest(call, callBack);
     }

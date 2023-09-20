@@ -50,9 +50,9 @@ public class NavigationController {
      *
      * @param project Represents the selected project
      */
-    public void onListItemLongClick(final Project project) {
-        projectService.removeProject(project.getId());
-    }
+//    public void onListItemLongClick(final Project project) {
+//        projectService.removeProject(project.getId());
+//    }
 
     /**
      * <p>

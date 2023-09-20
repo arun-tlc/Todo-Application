@@ -112,9 +112,18 @@
     <string name="hint">Hint</string>
     <string name="old_hint">Old Hint</string>
     <string name="new_hint">New Hint</string>
-    <string name="base_url">http://192.168.43.171:8080/</string>
+    <string name="base_url">http://192.168.1.138:8080/</string>
     <string name="token">token</string>
     <string name="data">data</string>
     <string name="message">message</string>
     <string name="request_failed">Request Failed : %s</string>
+    <string name="id">_id</string>
+    <string name="description">description</string>
+    <string name="json_name">name</string>
+    <string name="removed_project">Removed Successfully</string>
+    <string name="json_title">title</string>
+    <string name="json_email">email</string>
+    <string name="attributes">additional_attributes</string>
+    <string name="created_by">created_by</string>
+    <string name="json_id">project_id</string>
 </resources>

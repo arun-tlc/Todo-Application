@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.todoapp.backendservice.AuthenticationService;
+import com.example.todoapp.backendservice.TodoItemService;
 import com.example.todoapp.dao.ItemDao;
 import com.example.todoapp.dao.impl.ItemDaoImpl;
 import com.example.todoapp.model.Filter;
@@ -31,6 +33,11 @@ import com.example.todoapp.todoadapter.OnItemClickListener;
 import com.example.todoapp.todoadapter.TodoAdapter;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,7 +49,8 @@ public class PaginationActivity extends AppCompatActivity {
     private Query query;
     private List<TodoItem> todoItems;
     private ItemDao itemDao;
-    private Long selectedProjectId;
+    private String selectedProjectId;
+    private String token;
     private SearchView searchView;
     private Spinner statusSpinner;
     private Spinner pageFilter;
@@ -60,7 +68,8 @@ public class PaginationActivity extends AppCompatActivity {
         setContentView(R.layout.filterlayout);
 
         editText = findViewById(R.id.todoEditText);
-        selectedProjectId = getIntent().getLongExtra(getString(R.string.project_id), 0L);
+        selectedProjectId = getIntent().getStringExtra(getString(R.string.project_id));
+        token = getIntent().getStringExtra(getString(R.string.token));
         final String selectedProjectName = getIntent().getStringExtra(getString(R.string.project_name));
         todoList = new TodoList();
         query = todoList.getQuery();
@@ -127,7 +136,7 @@ public class PaginationActivity extends AppCompatActivity {
             public void onCloseIconClick(final TodoItem todoItem) {
                 todoItems.remove(todoItem);
                 todoAdapter.notifyDataSetChanged();
-                itemDao.delete(todoItem.getId());
+//                itemDao.delete(todoItem.getId());
 
                 if (currentPage > getTotalPages()) {
                     currentPage = getTotalPages();
@@ -201,17 +210,57 @@ public class PaginationActivity extends AppCompatActivity {
     }
 
     private void loadTodoItemsFromDataBase() {
-        todoItems = itemDao.getTodoItemsForProject(selectedProjectId);
+        final TodoItemService itemService = new TodoItemService(getString(R.string.base_url), token);
 
-        if (! todoItems.isEmpty()) {
-            todoList.setAllItems(todoItems);
-            refreshLayout();
-            updatePageNumber(pageNumber);
-        } else {
-            pageNumber.setVisibility(View.GONE);
-            nextButton.setVisibility(View.GONE);
-            prevButton.setVisibility(View.GONE);
+        itemService.getAll(new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(String responseBody) {
+                todoItems = parseItemsFromJson(responseBody);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+
+//        todoItems = itemDao.getTodoItemsForProject(selectedProjectId);
+//
+//        if (! todoItems.isEmpty()) {
+//            todoList.setAllItems(todoItems);
+//            refreshLayout();
+//            updatePageNumber(pageNumber);
+//        } else {
+//            pageNumber.setVisibility(View.GONE);
+//            nextButton.setVisibility(View.GONE);
+//            prevButton.setVisibility(View.GONE);
+//        }
+    }
+
+    private List<TodoItem> parseItemsFromJson(final String responseBody) {
+        final List<TodoItem> todoItemList = new ArrayList<>();
+
+        try {
+            final JSONObject responseJson = new JSONObject(responseBody);
+            final JSONArray data = responseJson.getJSONArray(getString(R.string.data));
+
+            for (int i = 0; i < data.length(); i++) {
+                final JSONObject projectJson = data.getJSONObject(i);
+
+                if (selectedProjectId.equals(projectJson.getString(getString(R.string.json_id)))) {
+                    final TodoItem todoItem = new TodoItem(projectJson.getString(
+                            getString(R.string.json_name)));
+
+                    todoItem.setId(projectJson.getString(getString(R.string.id)));
+                    todoItem.setParentId(selectedProjectId);
+                }
+
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
         }
+
+        return todoItemList;
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -222,7 +271,7 @@ public class PaginationActivity extends AppCompatActivity {
             final TodoItem todoItem = new TodoItem(todoText);
             final long itemOrder = todoAdapter.getItemCount() + 1;
 
-            todoItem.setParentId(selectedProjectId);
+//            todoItem.setParentId(selectedProjectId);
             todoItem.setStatus(TodoItem.StatusType.NON_COMPLETED);
             todoItem.setItemOrder(itemOrder);
             todoList.add(todoItem);

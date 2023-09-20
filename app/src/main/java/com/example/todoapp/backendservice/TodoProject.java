@@ -2,10 +2,7 @@ package com.example.todoapp.backendservice;
 
 import androidx.annotation.NonNull;
 
-import com.example.todoapp.model.Credential;
-import com.example.todoapp.model.ResetPasswordRequest;
-import com.example.todoapp.model.SignUpRequest;
-import com.example.todoapp.model.UserProfile;
+import com.example.todoapp.model.Project;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,20 +17,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class AuthenticationService {
+public class TodoProject {
 
-    private final ApiService apiService;
+    private final ProjectApiService apiService;
 
-    public AuthenticationService (final String baseUrl) {
-        final Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        apiService = retrofit.create(ApiService.class);
-    }
-
-    public AuthenticationService(final String baseUrl, final String accessToken) {
+    public TodoProject(final String baseUrl, final String accessToken) {
         final OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
         httpClient.addInterceptor(new AuthInterceptor(accessToken));
@@ -44,38 +32,30 @@ public class AuthenticationService {
                 .client(client)
                 .build();
 
-        apiService = retrofit.create(ApiService.class);
+        apiService = retrofit.create(ProjectApiService.class);
     }
 
-    public void signUp(final UserProfile userProfile, final Credential signUpDetail,
-                          final ApiResponseCallBack callBack) {
-        final SignUpRequest signUpRequest = new SignUpRequest(userProfile, signUpDetail);
-        final Call<ResponseBody> call = apiService.signUp(signUpRequest);
+    public void create(final Project project,
+                       final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.create(project);
 
         executeRequest(call, callBack);
     }
 
-    public void resetPassword(final Credential credential, final String newHint,
-                              final ApiResponseCallBack callBack) {
-        final ResetPasswordRequest resetPassword = new ResetPasswordRequest(credential, newHint);
-        final Call<ResponseBody> call = apiService.resetPassword(resetPassword);
+    public void getAll(final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.getAll();
 
         executeRequest(call, callBack);
     }
 
-    public void login(final Credential credential, final ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.login(credential);
+    public void delete(final String id, final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.delete(id);
 
         executeRequest(call, callBack);
     }
 
-    public void getUserDetail(final ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.getUserDetail();
-
-        executeRequest(call, callBack);
-    }
-
-    private void executeRequest(final Call<ResponseBody> call, final ApiResponseCallBack callBack) {
+    private void executeRequest(final Call<ResponseBody> call,
+                                final AuthenticationService.ApiResponseCallBack callBack) {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
@@ -107,11 +87,5 @@ public class AuthenticationService {
                 callBack.onError(t.getMessage());
             }
         });
-    }
-
-    public interface ApiResponseCallBack {
-
-        void onSuccess(final String responseBody);
-        void onError(final String errorMessage);
     }
 }

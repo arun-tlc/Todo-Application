@@ -26,8 +26,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.backendservice.AuthenticationService;
-import com.example.todoapp.backendservice.TodoProjectService;
+import com.example.todoapp.backendservice.TodoProject;
 import com.example.todoapp.projectadapter.DragItemTouchHelper;
+import com.example.todoapp.projectadapter.OnItemClickListener;
 import com.example.todoapp.projectadapter.ProjectAdapter;
 import com.example.todoapp.controller.NavigationController;
 import com.example.todoapp.dao.ProjectDao;
@@ -40,6 +41,11 @@ import com.example.todoapp.model.UserProfile;
 import com.example.todoapp.service.ProjectService;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -98,6 +104,7 @@ public class NavigationActivity extends AppCompatActivity {
         addProject = findViewById(R.id.addProject);
         projectDao = new ProjectDaoImpl(this);
         final UserDao userDao = new UserDaoImpl(this);
+        userProfile = new UserProfile();
 //        userProfile = userDao.getUserDetails(email);
 
         if (null == projectList) {
@@ -113,15 +120,16 @@ public class NavigationActivity extends AppCompatActivity {
         final ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
 
         touchHelper.attachToRecyclerView(recyclerView);
+        getUserDetail();
         loadProjectsFromDataBase();
         navigationController = new NavigationController(this,
                 new ProjectService(projectList));
 
-        if (null != userProfile) {
-            userName.setText(userProfile.getName());
-            userTitle.setText(userProfile.getTitle());
-            profileIcon.setText(userProfile.getProfileIconText());
-        }
+//        if (null != userProfile) {
+//            userName.setText(userProfile.getName());
+//            userTitle.setText(userProfile.getTitle());
+//            profileIcon.setText(userProfile.getProfileIconText());
+//        }
         final ImageButton menuButton = findViewById(R.id.menuButton);
         final ImageButton logout = findViewById(R.id.logout);
 
@@ -142,11 +150,26 @@ public class NavigationActivity extends AppCompatActivity {
             }
         });
         logout.setOnClickListener(view -> finish());
-        projectAdapter.setOnItemClickListener(position -> {
-            final Project selectedProject = projectList.getAllList().get(position);
+        projectAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(final int position) {
+                final Project selectedProject = projectList.getAllList().get(position);
 
-            navigationController.onListItemClick(selectedProject);
+                navigationController.onListItemClick(selectedProject);
+            }
+
+            @Override
+            public void onRemoveButtonClick(final int position) {
+                final Project projectToRemove = projects.get(position);
+
+                removeProject(projectToRemove);
+            }
         });
+//        projectAdapter.setOnItemClickListener(position -> {
+//            final Project selectedProject = projectList.getAllList().get(position);
+//
+//            navigationController.onListItemClick(selectedProject);
+//        });
         final ImageButton settingButton = findViewById(R.id.settingButton);
         final Spinner fontFamily = findViewById(R.id.fontFamily);
         final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -216,6 +239,57 @@ public class NavigationActivity extends AppCompatActivity {
         });
     }
 
+    private void getUserDetail() {
+        final AuthenticationService authenticationService = new AuthenticationService(
+                getString(R.string.base_url), token);
+
+        authenticationService.getUserDetail(new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {
+                setUpUserDetails(responseBody);
+            }
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
+    private void setUpUserDetails(final String responseBody) {
+        try {
+            final JSONObject responseJson = new JSONObject(responseBody);
+            final JSONObject data = responseJson.getJSONObject(getString(R.string.data));
+
+            userProfile.setId(data.getString(getString(R.string.id)));
+            userProfile.setName(data.getString(getString(R.string.json_name)));
+            userProfile.setTitle(data.getString(getString(R.string.json_title)));
+            userProfile.setEmail(data.getString(getString(R.string.json_email)));
+            userName.setText(userProfile.getName());
+            userTitle.setText(userProfile.getTitle());
+            profileIcon.setText(userProfile.getProfileIconText());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void removeProject(final Project project) {
+        final TodoProject projectService = new TodoProject(getString(R.string.base_url), token);
+
+        projectService.delete(project.getId(), new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(String responseBody) {
+                showSnackBar(getString(R.string.removed_project));
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+
+    }
+
     private void applyColorToComponents(final int colorId) {
         final int selectedColor = ContextCompat.getColor(this, colorId);
         final RelativeLayout relativeLayout = findViewById(R.id.relativeLayout);
@@ -273,18 +347,63 @@ public class NavigationActivity extends AppCompatActivity {
 
 
     private void loadProjectsFromDataBase() {
+        final TodoProject projectService = new TodoProject(getString(R.string.base_url), token);
+
+        projectService.getAll(new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(String responseBody) {
+                projects = parseProjectsFromJson(responseBody);
+
+                projectAdapter.clearProjects();
+                projectAdapter.addProjects(projects);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
 //        projects = projectDao.getAllProjectsForUser(userProfile.getId());
 
-        if (null != projects) {
-            projectAdapter.clearProjects();
-            projectAdapter.addProjects(projects);
+//        if (null != projects) {
+//            projectAdapter.clearProjects();
+//            projectAdapter.addProjects(projects);
+//        }
+    }
+
+    private List<Project> parseProjectsFromJson(final String responseBody) {
+        final List<Project> projectList = new ArrayList<>();
+
+        try {
+            final JSONObject responseJson = new JSONObject(responseBody);
+            final JSONArray data = responseJson.getJSONArray(getString(R.string.data));
+
+            for (int i = 0; i < data.length(); i++) {
+                final JSONObject projectJson = data.getJSONObject(i);
+                final JSONObject additionalAttributes = projectJson.getJSONObject(
+                        getString(R.string.attributes));
+
+                if (userProfile.getId().equals(additionalAttributes
+                        .getString(getString(R.string.created_by)))) {
+                    final Project project = new Project();
+
+                    project.setId(projectJson.getString(getString(R.string.id)));
+                    project.setName(projectJson.getString(getString(R.string.json_name)));
+                    project.setDescription(projectJson.getString(getString(R.string.description)));
+                    projectList.add(project);
+                }
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
         }
+
+        return projectList;
     }
 
     @SuppressLint("NotifyDataSetChanged")
     private void addProjectToList(final String projectName) {
         final Project project = new Project();
-        final TodoProjectService projectService = new TodoProjectService(
+        final TodoProject projectService = new TodoProject(
                 getString(R.string.base_url), token);
 
         project.setName(projectName);
@@ -341,6 +460,7 @@ public class NavigationActivity extends AppCompatActivity {
 
         intent.putExtra(getString(R.string.project_id), project.getId());
         intent.putExtra(getString(R.string.project_name), project.getName());
+        intent.putExtra(getString(R.string.token), token);
         startActivity(intent);
     }
 
@@ -390,15 +510,15 @@ public class NavigationActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        projectDao.open();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        projectDao.close();
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        projectDao.open();
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        projectDao.close();
+//    }
 }
