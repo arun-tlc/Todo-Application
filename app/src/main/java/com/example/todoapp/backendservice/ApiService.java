@@ -3,12 +3,14 @@ package com.example.todoapp.backendservice;
 import com.example.todoapp.model.Credential;
 import com.example.todoapp.model.ResetPasswordRequest;
 import com.example.todoapp.model.SignUpRequest;
+import com.example.todoapp.model.UserProfile;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 
 public interface ApiService {
 
@@ -23,4 +25,10 @@ public interface ApiService {
 
     @GET("api/v1/user/details")
     Call<ResponseBody> getUserDetail();
+
+    @PUT("api/v1/user/details")
+    Call<ResponseBody> updateUserDetail(@Body final UserProfile userProfile);
+
+    @GET("api/v1/user/system/settings")
+    Call<ResponseBody> getSystemSetting();
 }

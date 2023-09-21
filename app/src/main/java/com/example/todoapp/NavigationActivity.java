@@ -46,6 +46,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -164,12 +166,13 @@ public class NavigationActivity extends AppCompatActivity {
 
                 removeProject(projectToRemove);
             }
+
+            @Override
+            public void onProjectOrderUpdateListener(final Project fromProject,
+                                                     final Project toProject) {
+                updateProjectOrder(fromProject, toProject);
+            }
         });
-//        projectAdapter.setOnItemClickListener(position -> {
-//            final Project selectedProject = projectList.getAllList().get(position);
-//
-//            navigationController.onListItemClick(selectedProject);
-//        });
         final ImageButton settingButton = findViewById(R.id.settingButton);
         final Spinner fontFamily = findViewById(R.id.fontFamily);
         final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -236,6 +239,29 @@ public class NavigationActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void updateProjectOrder(final Project fromProject, final Project toProject) {
+        final TodoProject projectService = new TodoProject(getString(R.string.base_url), token);
+
+        projectService.updateOrder(fromProject, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {}
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+        projectService.updateOrder(toProject, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {}
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
         });
     }
 
@@ -389,10 +415,16 @@ public class NavigationActivity extends AppCompatActivity {
 
                     project.setId(projectJson.getString(getString(R.string.id)));
                     project.setName(projectJson.getString(getString(R.string.json_name)));
-                    project.setDescription(projectJson.getString(getString(R.string.description)));
+                    project.setProjectOrder((long) projectJson.getInt(getString(R.string.sort_order)));
                     projectList.add(project);
                 }
             }
+            Collections.sort(projectList, new Comparator<Project>() {
+                @Override
+                public int compare(final Project project1, final Project project2) {
+                    return Long.compare(project1.getProjectOrder(), project2.getProjectOrder());
+                }
+            });
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -407,7 +439,6 @@ public class NavigationActivity extends AppCompatActivity {
                 getString(R.string.base_url), token);
 
         project.setName(projectName);
-        project.setDescription("description");
         navigationController.addNewProject(project);
         projectService.create(project, new AuthenticationService.ApiResponseCallBack() {
             @Override
@@ -444,6 +475,7 @@ public class NavigationActivity extends AppCompatActivity {
         final Intent intent = new Intent(NavigationActivity.this,
                 ProfileActivity.class);
 
+        intent.putExtra(getString(R.string.token), token);
         startActivityIfNeeded(intent, REQUEST_CODE);
     }
 

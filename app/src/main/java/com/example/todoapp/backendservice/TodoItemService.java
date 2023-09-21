@@ -2,6 +2,8 @@ package com.example.todoapp.backendservice;
 
 import androidx.annotation.NonNull;
 
+import com.example.todoapp.model.TodoItem;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,8 +35,38 @@ public class TodoItemService {
         apiService = retrofit.create(ItemApiService.class);
     }
 
+    public void create(final String todoItem, final String projectId,
+                       final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.create(todoItem, projectId);
+
+        executeRequest(call, callBack);
+    }
+
     public void getAll(final AuthenticationService.ApiResponseCallBack callBack) {
         final Call<ResponseBody> call = apiService.getAll();
+
+        executeRequest(call, callBack);
+    }
+
+    public void delete(final String id, final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.delete(id);
+
+        executeRequest(call, callBack);
+    }
+
+    public void updateOrder(final TodoItem todoItem,
+                            final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateOrder(todoItem.getId(),
+                Math.toIntExact(todoItem.getItemOrder()), todoItem.getParentId());
+
+        executeRequest(call, callBack);
+    }
+
+    public void updateStatus(final TodoItem todoItem,
+                             final AuthenticationService.ApiResponseCallBack callBack) {
+        final boolean isCompleted = todoItem.getStatus() == TodoItem.StatusType.COMPLETED;
+        final Call<ResponseBody> call = apiService.updateStatus(todoItem.getId(), isCompleted,
+                todoItem.getParentId());
 
         executeRequest(call, callBack);
     }

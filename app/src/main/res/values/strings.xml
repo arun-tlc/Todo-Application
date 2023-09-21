@@ -112,7 +112,7 @@
     <string name="hint">Hint</string>
     <string name="old_hint">Old Hint</string>
     <string name="new_hint">New Hint</string>
-    <string name="base_url">http://192.168.1.138:8080/</string>
+    <string name="base_url">http://192.168.1.156:8080/</string>
     <string name="token">token</string>
     <string name="data">data</string>
     <string name="message">message</string>
@@ -126,4 +126,6 @@
     <string name="attributes">additional_attributes</string>
     <string name="created_by">created_by</string>
     <string name="json_id">project_id</string>
+    <string name="sort_order">sort_order</string>
+    <string name="is_completed">is_completed</string>
 </resources>

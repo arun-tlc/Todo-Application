@@ -54,6 +54,14 @@ public class TodoProject {
         executeRequest(call, callBack);
     }
 
+    public void updateOrder(final Project project,
+                            final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateOrder(project.getId(),
+                Math.toIntExact(project.getProjectOrder()));
+
+        executeRequest(call, callBack);
+    }
+
     private void executeRequest(final Call<ResponseBody> call,
                                 final AuthenticationService.ApiResponseCallBack callBack) {
         call.enqueue(new Callback<ResponseBody>() {

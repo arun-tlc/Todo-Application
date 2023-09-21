@@ -1,7 +1,6 @@
 package com.example.todoapp;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.todoapp.backendservice.AuthenticationService;
 import com.example.todoapp.dao.UserDao;
 import com.example.todoapp.dao.impl.UserDaoImpl;
 import com.example.todoapp.model.UserProfile;
@@ -20,6 +20,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private UserDao userDao;
     private UserProfile userProfile;
+    private String token;
     private TextView profileIcon;
     private Button saveButton;
     private Button cancelButton;
@@ -33,6 +34,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         final ImageButton backToMenu = findViewById(R.id.backMenu);
         userTitle = findViewById(R.id.editTitle);
+        token = getIntent().getStringExtra(getString(R.string.token));
         userName = findViewById(R.id.editUserName);
         cancelButton = findViewById(R.id.cancelButton);
         saveButton = findViewById(R.id.saveButton);
@@ -53,6 +55,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void updateUserDetails() {
         final Intent resultantIntent = new Intent();
+        final AuthenticationService authenticationService = new AuthenticationService(
+                getString(R.string.base_url), token);
         final String editedName = userName.getText().toString();
         final String editedTitle = userTitle.getText().toString();
 
@@ -60,21 +64,41 @@ public class ProfileActivity extends AppCompatActivity {
             final String currentName = null != userProfile.getName() ? userProfile.getName() : "";
             final String currentTitle = null != userProfile.getTitle() ? userProfile.getTitle() : "";
 
-            if (!currentName.equals(editedName) || !currentTitle.equals(editedTitle)) {
+            if (! currentName.equals(editedName) || !currentTitle.equals(editedTitle)) {
                 userProfile.setName(editedName);
                 userProfile.setTitle(editedTitle);
                 profileIcon.setText(userProfile.getProfileIconText());
-                final long updatedUserRows = userDao.update(userProfile);
+                authenticationService.updateUserDetail(userProfile,
+                        new AuthenticationService.ApiResponseCallBack() {
+                            @Override
+                            public void onSuccess(final String responseBody) {
+                                showSnackBar(getString(R.string.update_success));
+                                resultantIntent.putExtra(getString(R.string.user_name),
+                                        userProfile.getName());
+                                resultantIntent.putExtra(getString(R.string.user_title),
+                                        userProfile.getTitle());
+                                setResult(RESULT_OK, resultantIntent);
+                                finish();
+                            }
 
-                if (0 > updatedUserRows) {
-                    showSnackBar(getString(R.string.fail));
-                } else {
-                    showSnackBar(getString(R.string.update_success));
-                    resultantIntent.putExtra(getString(R.string.user_name), userProfile.getName());
-                    resultantIntent.putExtra(getString(R.string.user_title), userProfile.getTitle());
-                    setResult(RESULT_OK, resultantIntent);
-                    finish();
-                }
+                            @Override
+                            public void onError(final String errorMessage) {
+                                showSnackBar(errorMessage);
+                            }
+                        });
+
+//
+//                final long updatedUserRows = userDao.update(userProfile);
+//
+//                if (0 > updatedUserRows) {
+//                    showSnackBar(getString(R.string.fail));
+//                } else {
+//                    showSnackBar(getString(R.string.update_success));
+//                    resultantIntent.putExtra(getString(R.string.user_name), userProfile.getName());
+//                    resultantIntent.putExtra(getString(R.string.user_title), userProfile.getTitle());
+//                    setResult(RESULT_OK, resultantIntent);
+//                    finish();
+//                }
                 applyFontToAllLayouts();
                 applyFontSize();
                 applyColorToComponent();

@@ -90,8 +90,9 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         fromProject.setProjectOrder((long) (toPosition + 1));
         toProject.setProjectOrder((long) fromPosition + 1);
         notifyItemMoved(fromPosition, toPosition);
-        projectDao.updateProjectsOrder(fromProject);
-        projectDao.updateProjectsOrder(toProject);
+        onItemClickListener.onProjectOrderUpdateListener(fromProject, toProject);
+//        projectDao.updateProjectsOrder(fromProject);
+//        projectDao.updateProjectsOrder(toProject);
     }
 
 

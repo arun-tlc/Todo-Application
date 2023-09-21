@@ -75,6 +75,18 @@ public class AuthenticationService {
         executeRequest(call, callBack);
     }
 
+    public void updateUserDetail(final UserProfile userProfile, final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateUserDetail(userProfile);
+
+        executeRequest(call, callBack);
+    }
+
+    public void getSystemSetting(final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.getSystemSetting();
+
+        executeRequest(call, callBack);
+    }
+
     private void executeRequest(final Call<ResponseBody> call, final ApiResponseCallBack callBack) {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
