@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -27,9 +26,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.backendservice.AuthenticationService;
 import com.example.todoapp.backendservice.TodoProject;
-import com.example.todoapp.projectadapter.DragItemTouchHelper;
-import com.example.todoapp.projectadapter.OnItemClickListener;
-import com.example.todoapp.projectadapter.ProjectAdapter;
 import com.example.todoapp.controller.NavigationController;
 import com.example.todoapp.dao.ProjectDao;
 import com.example.todoapp.dao.UserDao;
@@ -38,6 +34,9 @@ import com.example.todoapp.dao.impl.UserDaoImpl;
 import com.example.todoapp.model.Project;
 import com.example.todoapp.model.ProjectList;
 import com.example.todoapp.model.UserProfile;
+import com.example.todoapp.projectadapter.DragItemTouchHelper;
+import com.example.todoapp.projectadapter.OnItemClickListener;
+import com.example.todoapp.projectadapter.ProjectAdapter;
 import com.example.todoapp.service.ProjectService;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -75,8 +74,12 @@ public class NavigationActivity extends AppCompatActivity {
     private TextView userTitle;
     private LinearLayout addLayout;
     private EditText projectEditText;
-    private boolean isFontFamilyItemSelected;
-    private boolean isFontSizeItemSelected;
+    private Spinner fontFamily;
+    private Spinner fontSizeSpinner;
+    private Spinner defaultColorSpinner;
+    private boolean isFontFamilyItemSelected = false;
+    private boolean isFontSizeItemSelected = false;
+    private boolean isDefaultColorItemSelected;
 
     /**
      * <p>
@@ -173,8 +176,9 @@ public class NavigationActivity extends AppCompatActivity {
                 updateProjectOrder(fromProject, toProject);
             }
         });
+        getSystemSettings();
         final ImageButton settingButton = findViewById(R.id.settingButton);
-        final Spinner fontFamily = findViewById(R.id.fontFamily);
+        fontFamily = findViewById(R.id.fontFamily);
         final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.font_family, android.R.layout.simple_spinner_item);
 
@@ -186,12 +190,14 @@ public class NavigationActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (isFontFamilyItemSelected) {
-                    final int fontId = getFondIdFromPosition(position);
+                    final int fontId = getFondId(parent.getItemAtPosition(position)
+                            .toString());
                     final Typeface typeface = ResourcesCompat.getFont(NavigationActivity.this,
                             fontId);
 
                     TypeFaceUtil.setSelectedTypeFace(typeface);
                     applyFontToAllLayouts();
+                    updateSystemSettings();
                 } else {
                     isFontFamilyItemSelected = true;
                 }
@@ -200,7 +206,7 @@ public class NavigationActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-        final Spinner fontSizeSpinner = findViewById(R.id.fontSize);
+        fontSizeSpinner = findViewById(R.id.fontSize);
         final ArrayAdapter<CharSequence> fontSizeAdapter = ArrayAdapter.createFromResource(
                 this, R.array.font_size, android.R.layout.simple_spinner_item);
 
@@ -210,10 +216,11 @@ public class NavigationActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (isFontSizeItemSelected) {
-                    final float textSize = getFontSize(position);
+                    final float textSize = getFontSize(parent.getItemAtPosition(position).toString());
 
                     TypeFaceUtil.setSelectedFontSize(textSize);
                     applyFontSize();
+                    updateSystemSettings();
                 } else {
                     isFontSizeItemSelected = true;
                 }
@@ -222,7 +229,7 @@ public class NavigationActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-        final Spinner defaultColorSpinner = findViewById(R.id.defaultColor);
+        defaultColorSpinner = findViewById(R.id.defaultColor);
         final ArrayAdapter<CharSequence> colorAdapter = ArrayAdapter.createFromResource(this,
                 R.array.default_color, android.R.layout.simple_spinner_item);
 
@@ -231,15 +238,108 @@ public class NavigationActivity extends AppCompatActivity {
         defaultColorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final int selectedColor = getColorResourceId(position);
+                if (isDefaultColorItemSelected) {
+                    final int selectedColor = getColorResourceId(parent.getItemAtPosition(position)
+                            .toString());
 
-                TypeFaceUtil.setSelectedDefaultColor(selectedColor);
-                applyColorToComponents(selectedColor);
+                    TypeFaceUtil.setSelectedDefaultColor(selectedColor);
+                    applyColorToComponents(selectedColor);
+                    updateSystemSettings();
+                } else {
+                    isDefaultColorItemSelected = true;
+                }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
+    }
+
+    private void updateSystemSettings() {
+        final String selectedFontFamily = fontFamily.getSelectedItem().toString();
+        final String selectedColor = defaultColorSpinner.getSelectedItem().toString();
+        final int fontSize = (int) getFontSize(fontSizeSpinner.getSelectedItem().toString());
+
+        sendSettings(selectedFontFamily, selectedColor, fontSize);
+    }
+
+    private void sendSettings(final String selectedFontFamily, final String selectedColor,
+                              final int fontSize) {
+        final AuthenticationService authenticationService = new AuthenticationService(
+                getString(R.string.base_url), token);
+
+        authenticationService.updateSystemSetting(selectedFontFamily, fontSize,
+                selectedColor, new AuthenticationService.ApiResponseCallBack() {
+                    @Override
+                    public void onSuccess(final String responseBody) {
+                        showSnackBar(getString(R.string.update_success));
+                    }
+
+                    @Override
+                    public void onError(final String errorMessage) {
+                        showSnackBar(errorMessage);
+                    }
+                });
+    }
+
+    private void getSystemSettings() {
+        final AuthenticationService authenticationService = new AuthenticationService(
+                getString(R.string.base_url), token);
+
+        authenticationService.getSystemSetting(new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(String responseBody) {
+                handleSystemSettings(responseBody);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
+    private void handleSystemSettings(final String responseBody) {
+        try {
+            final JSONObject responseJson = new JSONObject(responseBody);
+
+            if (! responseJson.isNull(getString(R.string.data))) {
+                final JSONObject data = responseJson.getJSONObject(getString(R.string.data));
+                final String fontName = data.getString(getString(R.string.font_name));
+                final int fontSize = data.getInt(getString(R.string.size));
+                final String color = data.getString(getString(R.string.font_color));
+
+                applySystemSettings(fontName, fontSize, color);
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void applySystemSettings(final String fontName, final int fontSize, final String color) {
+        final int fontId = getFondId(fontName);
+        final Typeface typeface = ResourcesCompat.getFont(NavigationActivity.this,
+                fontId);
+        final String sizeName = mapFontSize(fontSize);
+
+        TypeFaceUtil.setSelectedTypeFace(typeface);
+        TypeFaceUtil.setSelectedFontSize(getFontSize(sizeName));
+        TypeFaceUtil.setSelectedDefaultColor(getColorResourceId(color));
+        applyFontToAllLayouts();
+        applyFontSize();
+        applyColorToComponents(TypeFaceUtil.getSelectedDefaultColor());
+    }
+
+    private String mapFontSize(final int fontSize) {
+        if (fontSize == (int) getResources().getDimension(R.dimen.text_small)) {
+            return getString(R.string.small);
+        } else if (fontSize == (int) getResources().getDimension(R.dimen.text_medium)) {
+            return getString(R.string.medium);
+        } else if (fontSize == (int) getResources().getDimension(R.dimen.text_large)) {
+            return getString(R.string.large);
+        } else {
+            return getString(R.string.Default);
+        }
     }
 
     private void updateProjectOrder(final Project fromProject, final Project toProject) {
@@ -326,11 +426,11 @@ public class NavigationActivity extends AppCompatActivity {
         userProfile.setBackgroundColor(selectedColor);
     }
 
-    private int getColorResourceId(final int position) {
-        switch (position) {
-            case 0:
+    private int getColorResourceId(final String color) {
+        switch (color) {
+            case "Green":
                 return R.color.green;
-            case 1:
+            case "Blue":
                 return R.color.blue;
             default:
                 return R.color.default_color;
@@ -341,13 +441,13 @@ public class NavigationActivity extends AppCompatActivity {
         TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
     }
 
-    private float getFontSize(final int position) {
-        switch (position) {
-            case 0:
+    private float getFontSize(final String sizeName) {
+        switch (sizeName) {
+            case "Small":
                 return getResources().getDimension(R.dimen.text_small);
-            case 1:
+            case "Medium":
                 return getResources().getDimension(R.dimen.text_medium);
-            case 2:
+            case "Large":
                 return getResources().getDimension(R.dimen.text_large);
             default:
                 return getResources().getDimension(R.dimen.text_default);
@@ -358,14 +458,20 @@ public class NavigationActivity extends AppCompatActivity {
         TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
     }
 
-    private int getFondIdFromPosition(final int position) {
-        switch (position) {
-            case 0:
+    private int getFondId(final String fontName) {
+        switch (fontName) {
+            case "Arial Black":
                 return R.font.arial_black;
-            case 1:
+            case "Cikal Bakal":
                 return R.font.cikal_bakal;
-            case 2:
+            case "Times New Roman":
                 return R.font.times_new;
+            case "roboto":
+                return R.font.roboto;
+            case "Aclonica":
+                return R.font.aclonica;
+            case "Patrick":
+                return R.font.patrick_hand_sc;
             default:
                 return R.font.font;
         }
@@ -516,8 +622,7 @@ public class NavigationActivity extends AppCompatActivity {
      * </p>
      */
     public void showProjectExistMessage() {
-        Toast.makeText(NavigationActivity.this, "Project Name Already Exists",
-                Toast.LENGTH_SHORT).show();
+        showSnackBar(getString(R.string.project_exist));
     }
 
     @Override

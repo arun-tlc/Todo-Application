@@ -16,6 +16,8 @@
     </string-array>
 
     <string-array name="font_family">
+        <item>Aclonica</item>
+        <item>Patrick</item>
         <item>Arial Black</item>
         <item>Cikal Bakal</item>
         <item>Times New Roman</item>
@@ -128,4 +130,12 @@
     <string name="json_id">project_id</string>
     <string name="sort_order">sort_order</string>
     <string name="is_completed">is_completed</string>
+    <string name="font_name">font_family</string>
+    <string name="size">font_size</string>
+    <string name="font_color">color</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
+    <string name="Default">Default</string>
+    <string name="project_exist">Project Name Already Exists</string>
 </resources>

@@ -112,7 +112,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
                     todoTextView.setTextColor(todoItem.getStatus() == TodoItem.StatusType.COMPLETED
                             ? Color.GRAY : Color.BLACK);
 //                    itemDao.updateItemsStatus(todoItem);
-                    listener.onCheckBoxClick(todoItem);
+//                    listener.onCheckBoxClick(todoItem);
                 }
             });
             todoRemoveButton.setOnClickListener(new View.OnClickListener() {
