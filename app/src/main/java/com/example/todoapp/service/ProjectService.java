@@ -39,7 +39,7 @@ public class ProjectService {
      *
      * @param id Represents the id of the project
      */
-    public void removeProject(final Long id) {
+    public void removeProject(final String id) {
         projectList.remove(id);
     }
 
@@ -52,7 +52,7 @@ public class ProjectService {
      * @return True if project is exists, false otherwise
      */
     public boolean projectExists(final String projectName) {
-        return getAllProjects().stream().anyMatch(project -> project.getLabel()
+        return getAllProjects().stream().anyMatch(project -> project.getName()
                 .equals(projectName));
     }
 

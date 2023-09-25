@@ -74,8 +74,6 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
         Collections.swap(todoItems, fromPosition, toPosition);
         fromItem.setItemOrder((long) (toPosition + 1));
         toItem.setItemOrder((long) (fromPosition + 1));
-//        itemDao.updateItemsOrder(fromItem);
-//        itemDao.updateItemsOrder(toItem);
         listener.onItemOrderUpdateListener(fromItem, toItem);
         notifyItemMoved(fromPosition, toPosition);
     }
@@ -111,23 +109,15 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
                             : TodoItem.StatusType.NON_COMPLETED);
                     todoTextView.setTextColor(todoItem.getStatus() == TodoItem.StatusType.COMPLETED
                             ? Color.GRAY : Color.BLACK);
-//                    itemDao.updateItemsStatus(todoItem);
-//                    listener.onCheckBoxClick(todoItem);
                 }
             });
-            todoRemoveButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    final int position = getAbsoluteAdapterPosition();
+            todoRemoveButton.setOnClickListener(view -> {
+                final int position = getAbsoluteAdapterPosition();
 
-                    if (position != RecyclerView.NO_POSITION) {
-                        final TodoItem todoItem = todoItems.get(position);
+                if (position != RecyclerView.NO_POSITION) {
+                    final TodoItem todoItem = todoItems.get(position);
 
-                        todoItems.remove(todoItem);
-                        notifyItemRemoved(position);
-//                        itemDao.delete(todoItem.getId());
-                        listener.onCloseIconClick(todoItem);
-                    }
+                    listener.onCloseIconClick(todoItem);
                 }
             });
         }

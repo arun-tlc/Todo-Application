@@ -16,7 +16,7 @@ public class ProjectList {
         projectList.add(project);
     }
 
-    public void remove(final Long id) {
+    public void remove(final String id) {
         projectList = projectList.stream().filter(project -> ! id.equals(project.getId()))
                 .collect(Collectors.toList());
         projectList.size();

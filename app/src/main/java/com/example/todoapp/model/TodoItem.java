@@ -2,9 +2,9 @@ package com.example.todoapp.model;
 
 public class TodoItem {
 
-    private Long id;
+    private String id;
     private String label;
-    private Long parentId;
+    private String parentId;
     private StatusType status;
     private Long itemOrder;
     private boolean isChecked;
@@ -26,11 +26,11 @@ public class TodoItem {
         this.label = label;
     }
 
-    public void setId(final Long id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -42,11 +42,11 @@ public class TodoItem {
         this.isChecked = ! this.isChecked;
     }
 
-    public Long getParentId() {
+    public String getParentId() {
         return parentId;
     }
 
-    public void setParentId(final Long parentId) {
+    public void setParentId(final String parentId) {
         this.parentId = parentId;
     }
 

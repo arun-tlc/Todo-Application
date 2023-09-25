@@ -2,7 +2,7 @@ package com.example.todoapp.model;
 
 public class UserProfile {
 
-    private Long id;
+    private String id;
     private String name;
     private String title;
     private String email;
@@ -31,11 +31,11 @@ public class UserProfile {
         this.title = title;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(final Long id) {
+    public void setId(final String id) {
         this.id = id;
     }
 

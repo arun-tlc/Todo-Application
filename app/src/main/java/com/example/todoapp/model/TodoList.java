@@ -1,7 +1,6 @@
 package com.example.todoapp.model;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -20,12 +19,12 @@ public class TodoList {
         todoItems.add(todoItem);
     }
 
-    public void remove(final Long id) {
+    public void remove(final String id) {
         todoItems = todoItems.stream().filter(todoItem -> ! Objects.equals(todoItem.getId(), id))
                 .collect(Collectors.toList());
     }
 
-    public List<TodoItem> getAllItems(final Long parentId) {
+    public List<TodoItem> getAllItems(final String parentId) {
         if (null == parentId) {
             return todoItems;
         }
@@ -44,7 +43,6 @@ public class TodoList {
     }
 
     public List<TodoItem> filterAndSortItems() {
-        final Sort sort = query.getSort();
         final Filter filterObj = query.getFilterObj();
         List<TodoItem> filteredItems;
 
@@ -52,14 +50,6 @@ public class TodoList {
             filteredItems = filterSearchItems(todoItems, query.getSearch());
         } else {
             filteredItems = todoItems;
-        }
-
-        if (null != query.getSearch()) {
-            if (sort.getType() == Sort.SortType.DESCENDING) {
-                filteredItems.sort((item1, item2) -> item2.getLabel().compareTo(item1.getLabel()));
-            } else if (sort.getType() == Sort.SortType.ASCENDING) {
-                filteredItems.sort(Comparator.comparing(TodoItem::getLabel));
-            }
         }
 
         if (null != filterObj && "status".equals(filterObj.getAttribute())) {

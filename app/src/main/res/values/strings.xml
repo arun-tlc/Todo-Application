@@ -114,7 +114,7 @@
     <string name="hint">Hint</string>
     <string name="old_hint">Old Hint</string>
     <string name="new_hint">New Hint</string>
-    <string name="base_url">http://192.168.1.156:8080/</string>
+    <string name="base_url">http://192.168.1.210:8080/</string>
     <string name="token">token</string>
     <string name="data">data</string>
     <string name="message">message</string>

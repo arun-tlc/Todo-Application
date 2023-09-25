@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.R;
 import com.example.todoapp.TypeFaceUtil;
-import com.example.todoapp.dao.ProjectDao;
 import com.example.todoapp.model.Project;
 
 import java.util.Collections;
@@ -23,12 +22,9 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         implements ItemTouchHelperAdapter {
 
     private final List<Project> projects;
-    private final ProjectDao projectDao;
     private OnItemClickListener onItemClickListener;
 
-    public ProjectAdapter(final List<Project> projects, final ProjectDao projectDao) {
-
-        this.projectDao = projectDao;
+    public ProjectAdapter(final List<Project> projects) {
         this.projects = projects;
     }
 
@@ -59,7 +55,11 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         holder.projectNameTextView.setText(project.getName());
         holder.itemView.setOnClickListener(view -> {
             if (null != onItemClickListener) {
-                onItemClickListener.onItemClick(position);
+                final int state = holder.getAbsoluteAdapterPosition();
+
+                if (state != RecyclerView.NO_POSITION) {
+                    onItemClickListener.onItemClick(state);
+                }
             }
         });
     }
@@ -91,8 +91,6 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         toProject.setProjectOrder((long) fromPosition + 1);
         notifyItemMoved(fromPosition, toPosition);
         onItemClickListener.onProjectOrderUpdateListener(fromProject, toProject);
-//        projectDao.updateProjectsOrder(fromProject);
-//        projectDao.updateProjectsOrder(toProject);
     }
 
 
@@ -105,17 +103,14 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
             projectNameTextView = itemView.findViewById(R.id.projectNameTextView);
             removeButton = itemView.findViewById(R.id.removeButton);
 
-            removeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    final int position = getAbsoluteAdapterPosition();
+            removeButton.setOnClickListener(view -> {
+                final int position = getAbsoluteAdapterPosition();
 
-                    if (position != RecyclerView.NO_POSITION && null != onItemClickListener) {
-                        onItemClickListener.onRemoveButtonClick(position);
-                        final Project projectToRemove = projects.get(position);
+                if (position != RecyclerView.NO_POSITION && null != onItemClickListener) {
+                    onItemClickListener.onRemoveButtonClick(position);
+                    final Project projectToRemove = projects.get(position);
 
-                        removeProject(projectToRemove);
-                    }
+                    removeProject(projectToRemove);
                 }
             });
         }
@@ -127,7 +122,6 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         if (-1 != position) {
             projects.remove(position);
             notifyItemRemoved(position);
-//            projectDao.delete(projectToRemove);
         }
     }
 }
