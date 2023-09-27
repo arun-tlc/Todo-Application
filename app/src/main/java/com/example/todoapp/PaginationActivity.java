@@ -20,8 +20,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.backendservice.AuthenticationService;
 import com.example.todoapp.backendservice.TodoItemService;
-import com.example.todoapp.dao.ItemDao;
-import com.example.todoapp.dao.impl.ItemDaoImpl;
 import com.example.todoapp.model.Filter;
 import com.example.todoapp.model.Query;
 import com.example.todoapp.model.Sort;
@@ -48,7 +46,6 @@ public class PaginationActivity extends AppCompatActivity {
     private TodoList todoList;
     private Query query;
     private List<TodoItem> todoItems;
-    private ItemDao itemDao;
     private String selectedProjectId;
     private String token;
     private SearchView searchView;
@@ -73,7 +70,6 @@ public class PaginationActivity extends AppCompatActivity {
         final String selectedProjectName = getIntent().getStringExtra(getString(R.string.project_name));
         todoList = new TodoList();
         query = todoList.getQuery();
-        itemDao = new ItemDaoImpl(this);
         searchView = findViewById(R.id.searchView);
         statusSpinner = findViewById(R.id.statusSpinner);
         pageFilter = findViewById(R.id.pageFilter);
@@ -94,7 +90,7 @@ public class PaginationActivity extends AppCompatActivity {
             textView.setText(selectedProjectName);
         }
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        todoAdapter = new TodoAdapter(todoItems, itemDao);
+        todoAdapter = new TodoAdapter(todoItems);
 
         recyclerView.setAdapter(todoAdapter);
         final ItemTouchHelper.Callback callback = new ItemTouchHelperCallBack(todoAdapter);
@@ -137,9 +133,9 @@ public class PaginationActivity extends AppCompatActivity {
             @Override
             public void onCloseIconClick(final TodoItem todoItem) {
                 removeTodoItem(todoItem);
+                todoList.remove(todoItem.getId());
                 todoItems.remove(todoItem);
                 todoAdapter.notifyDataSetChanged();
-//                itemDao.delete(todoItem.getId());
 
                 if (currentPage > getTotalPages()) {
                     currentPage = getTotalPages();
@@ -246,10 +242,10 @@ public class PaginationActivity extends AppCompatActivity {
         });
         itemService.updateOrder(toItem, new AuthenticationService.ApiResponseCallBack() {
             @Override
-            public void onSuccess(String responseBody) {}
+            public void onSuccess(final String responseBody) {}
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(final String errorMessage) {
                 showSnackBar(errorMessage);
             }
         });
@@ -265,7 +261,7 @@ public class PaginationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(final String errorMessage) {
                 showSnackBar(errorMessage);
             }
         });
@@ -291,22 +287,10 @@ public class PaginationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(final String errorMessage) {
                 showSnackBar(errorMessage);
             }
         });
-
-//        todoItems = itemDao.getTodoItemsForProject(selectedProjectId);
-//
-//        if (! todoItems.isEmpty()) {
-//            todoList.setAllItems(todoItems);
-//            refreshLayout();
-//            updatePageNumber(pageNumber);
-//        } else {
-//            pageNumber.setVisibility(View.GONE);
-//            nextButton.setVisibility(View.GONE);
-//            prevButton.setVisibility(View.GONE);
-//        }
     }
 
     private List<TodoItem> parseItemsFromJson(final String responseBody) {
@@ -356,19 +340,8 @@ public class PaginationActivity extends AppCompatActivity {
             todoItem.setParentId(selectedProjectId);
             todoItem.setStatus(TodoItem.StatusType.NON_COMPLETED);
             todoItem.setItemOrder(itemOrder);
+            todoList.add(todoItem);
             createTodoItem(todoItem);
-//            final long todoId = itemDao.insert(todoItem);
-//            todoItems = todoList.getAllItems(selectedProjectId);
-//            pageNumber.setVisibility(View.VISIBLE);
-//            prevButton.setVisibility(View.VISIBLE);
-//            nextButton.setVisibility(View.VISIBLE);
-//
-//            if (-1 == todoId) {
-//                showSnackBar(getString(R.string.fail));
-//            } else {
-//                showSnackBar(getString(R.string.success));
-//                todoAdapter.addTodoItems(todoItems);
-//            }
         }
         editText.getText().clear();
         refreshLayout();
@@ -384,13 +357,13 @@ public class PaginationActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(final String responseBody) {
                         showSnackBar(getString(R.string.success));
-                        todoList.add(todoItem);
                         todoItems = todoList.getAllItems(selectedProjectId);
 
                         pageNumber.setVisibility(View.VISIBLE);
                         prevButton.setVisibility(View.VISIBLE);
                         nextButton.setVisibility(View.VISIBLE);
                         todoAdapter.addTodoItems(todoItems);
+                        loadTodoItemsFromDataBase();
                     }
 
                     @Override
@@ -401,8 +374,12 @@ public class PaginationActivity extends AppCompatActivity {
     }
 
     private void refreshLayout() {
-        final int startIndex = (currentPage - 1) * pageSize;
+        int startIndex = (currentPage - 1) * pageSize;
         final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
+
+        if (0 > startIndex) {
+            startIndex = 0;
+        }
         final List<TodoItem> currentPageItems = todoItems.subList(startIndex, endIndex);
 
         todoAdapter.addTodoItems(currentPageItems);
@@ -467,8 +444,7 @@ public class PaginationActivity extends AppCompatActivity {
 
     @SuppressLint("DefaultLocale")
     private void updatePageNumber(final TextView pageNumber) {
-        pageNumber.setText(String.format(getString(R.string.string_format), currentPage,
-                getTotalPages()));
+        pageNumber.setText(String.format(getString(R.string.string_format), currentPage, getTotalPages()));
     }
 
     private int getTotalPages() {
@@ -490,6 +466,8 @@ public class PaginationActivity extends AppCompatActivity {
             relativeLayout.setBackgroundColor(getResources().getColor(R.color.green));
         } else if (defaultColor == R.color.blue) {
             relativeLayout.setBackgroundColor(getResources().getColor(R.color.blue));
+        } else {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.default_color));
         }
     }
 
@@ -499,17 +477,5 @@ public class PaginationActivity extends AppCompatActivity {
 
     private void applyFontSize() {
         TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        itemDao.open();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        itemDao.close();
     }
 }

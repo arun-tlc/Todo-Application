@@ -18,7 +18,7 @@ public class AuthInterceptor implements Interceptor {
 
     @NonNull
     @Override
-    public Response intercept(@NonNull Chain chain) throws IOException {
+    public Response intercept(@NonNull final Chain chain) throws IOException {
         final Request originalRequest = chain.request();
         final Request newRequest = originalRequest.newBuilder()
                 .header("Authorization", String.format("Bearer %s", accessToken))

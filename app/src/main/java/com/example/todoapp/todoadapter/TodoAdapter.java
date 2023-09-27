@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todoapp.R;
 import com.example.todoapp.TypeFaceUtil;
-import com.example.todoapp.dao.ItemDao;
 import com.example.todoapp.model.TodoItem;
 import com.example.todoapp.projectadapter.ItemTouchHelperAdapter;
 
@@ -26,11 +25,9 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
         implements ItemTouchHelperAdapter {
 
     private final List<TodoItem> todoItems;
-    private final ItemDao itemDao;
     private OnItemClickListener listener;
 
-    public TodoAdapter(final List<TodoItem> todoItems, final ItemDao itemDao) {
-        this.itemDao = itemDao;
+    public TodoAdapter(final List<TodoItem> todoItems) {
         this.todoItems = todoItems;
     }
 
@@ -117,6 +114,8 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
                 if (position != RecyclerView.NO_POSITION) {
                     final TodoItem todoItem = todoItems.get(position);
 
+                    todoItems.remove(todoItem);
+                    notifyItemRemoved(position);
                     listener.onCloseIconClick(todoItem);
                 }
             });

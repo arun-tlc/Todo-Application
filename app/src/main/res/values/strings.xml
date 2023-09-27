@@ -21,12 +21,14 @@
         <item>Arial Black</item>
         <item>Cikal Bakal</item>
         <item>Times New Roman</item>
+        <item>roboto</item>
     </string-array>
 
     <string-array name="font_size">
         <item>Small</item>
         <item>Medium</item>
         <item>Large</item>
+        <item>Default</item>
     </string-array>
 
     <string-array name="default_color">
@@ -114,7 +116,7 @@
     <string name="hint">Hint</string>
     <string name="old_hint">Old Hint</string>
     <string name="new_hint">New Hint</string>
-    <string name="base_url">http://192.168.1.210:8080/</string>
+    <string name="base_url">http://192.168.1.4:8080/</string>
     <string name="token">token</string>
     <string name="data">data</string>
     <string name="message">message</string>

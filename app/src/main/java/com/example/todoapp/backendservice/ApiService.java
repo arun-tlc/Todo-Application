@@ -13,6 +13,7 @@ import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -34,9 +35,20 @@ public interface ApiService {
     @GET("api/v1/user/system/settings")
     Call<ResponseBody> getSystemSetting();
 
+    @PUT("api/v1/user/system/settings")
+    Call<ResponseBody> updateSystemSetting(@Query("font_family") final String font,
+                                           @Query("font_size") final Integer size,
+                                           @Query("color") final String color);
+
     @FormUrlEncoded
     @PUT("api/v1/user/system/settings")
-    Call<ResponseBody> updateSystemSetting(@Field("font_family") final String font,
-                                           @Field("font_size") final int size,
-                                           @Field("color") final String color);
+    Call<ResponseBody> updateFontFamily(@Field("font_family") final String fontFamily);
+
+    @FormUrlEncoded
+    @PUT("api/v1/user/system/settings")
+    Call<ResponseBody> updateFontSize(@Field("font_size") final int fontSize);
+
+    @FormUrlEncoded
+    @PUT("api/v1/user/system/settings")
+    Call<ResponseBody> updateColor(@Field("color") final String color);
 }

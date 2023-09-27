@@ -6,7 +6,7 @@ public interface OnItemClickListener {
 
     void onItemClick(final int position);
 
-    void onRemoveButtonClick(final int position);
+    void onRemoveButtonClick(final Project project);
 
     void onProjectOrderUpdateListener(final Project fromProject, final Project toProject);
 }

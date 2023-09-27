@@ -15,7 +15,8 @@ public class ItemTouchHelperCallBack extends ItemTouchHelper.Callback {
     }
 
     @Override
-    public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+    public int getMovementFlags(@NonNull final RecyclerView recyclerView,
+                                @NonNull final RecyclerView.ViewHolder viewHolder) {
         final int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
 
         return makeMovementFlags(dragFlags, 0);

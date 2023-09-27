@@ -87,18 +87,37 @@ public class AuthenticationService {
         executeRequest(call, callBack);
     }
 
-    public void updateSystemSetting(final String fontFamily, final int fontSize, final String color,
-                                    final ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.updateSystemSetting(fontFamily, fontSize, color);
+    public void updateFontFamily(final String fontFamily, final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateFontFamily(fontFamily);
 
         executeRequest(call, callBack);
     }
 
+    public void updateFontSize(final int fontSize, final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateFontSize(fontSize);
+
+        executeRequest(call, callBack);
+    }
+
+    public void updateColor(final String fontColor, final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateColor(fontColor);
+
+        executeRequest(call, callBack);
+    }
+
+//    public void updateSystemSetting(@Nullable final String fontFamily,
+//                                    @Nullable final Integer fontSize, @Nullable final String color,
+//                                    final ApiResponseCallBack callBack) {
+//        final Call<ResponseBody> call = apiService.updateSystemSetting(fontFamily, fontSize, color);
+//
+//        executeRequest(call, callBack);
+//    }
+
     private void executeRequest(final Call<ResponseBody> call, final ApiResponseCallBack callBack) {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(@NonNull Call<ResponseBody> call,
-                                   @NonNull Response<ResponseBody> response) {
+            public void onResponse(@NonNull final Call<ResponseBody> call,
+                                   @NonNull final Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     assert response.body() != null;
 
@@ -122,7 +141,8 @@ public class AuthenticationService {
             }
 
             @Override
-            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull final Call<ResponseBody> call,
+                                  @NonNull final Throwable t) {
                 callBack.onError(t.getMessage());
             }
         });

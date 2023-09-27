@@ -27,10 +27,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.todoapp.backendservice.AuthenticationService;
 import com.example.todoapp.backendservice.TodoProject;
 import com.example.todoapp.controller.NavigationController;
-import com.example.todoapp.dao.ProjectDao;
-import com.example.todoapp.dao.UserDao;
-import com.example.todoapp.dao.impl.ProjectDaoImpl;
-import com.example.todoapp.dao.impl.UserDaoImpl;
 import com.example.todoapp.model.Project;
 import com.example.todoapp.model.ProjectList;
 import com.example.todoapp.model.UserProfile;
@@ -67,7 +63,6 @@ public class NavigationActivity extends AppCompatActivity {
     private String token;
     private Button addProject;
     private NavigationController navigationController;
-    private ProjectDao projectDao;
     private static final int REQUEST_CODE = 1;
     private TextView profileIcon;
     private TextView userName;
@@ -77,8 +72,11 @@ public class NavigationActivity extends AppCompatActivity {
     private Spinner fontFamily;
     private Spinner fontSizeSpinner;
     private Spinner defaultColorSpinner;
-    private boolean isFontFamilyItemSelected = false;
-    private boolean isFontSizeItemSelected = false;
+    private String selectedFontFamily;
+    private String selectedColor;
+    private String selectedFontSize;
+    private boolean isFontFamilyItemSelected;
+    private boolean isFontSizeItemSelected;
     private boolean isDefaultColorItemSelected;
 
     /**
@@ -101,16 +99,12 @@ public class NavigationActivity extends AppCompatActivity {
         final RecyclerView recyclerView = findViewById(R.id.nameListView);
         profileIcon = findViewById(R.id.profileIcon);
         userName = findViewById(R.id.userName);
-//        final String email = getIntent().getStringExtra(getString(R.string.user_email));
         token = getIntent().getStringExtra(getString(R.string.token));
         userTitle = findViewById(R.id.userTitle);
         addLayout = findViewById(R.id.addLayout);
         projectEditText = findViewById(R.id.projectEditText);
         addProject = findViewById(R.id.addProject);
-        projectDao = new ProjectDaoImpl(this);
-        final UserDao userDao = new UserDaoImpl(this);
         userProfile = new UserProfile();
-//        userProfile = userDao.getUserDetails(email);
 
         if (null == projectList) {
             projectList = new ProjectList();
@@ -118,7 +112,7 @@ public class NavigationActivity extends AppCompatActivity {
         projects = projectList.getAllList();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        projectAdapter = new ProjectAdapter(projects, projectDao);
+        projectAdapter = new ProjectAdapter(projects);
 
         recyclerView.setAdapter(projectAdapter);
         final ItemTouchHelper.Callback callback = new DragItemTouchHelper(projectAdapter);
@@ -129,12 +123,6 @@ public class NavigationActivity extends AppCompatActivity {
         loadProjectsFromDataBase();
         navigationController = new NavigationController(this,
                 new ProjectService(projectList));
-
-//        if (null != userProfile) {
-//            userName.setText(userProfile.getName());
-//            userTitle.setText(userProfile.getTitle());
-//            profileIcon.setText(userProfile.getProfileIconText());
-//        }
         final ImageButton menuButton = findViewById(R.id.menuButton);
         final ImageButton logout = findViewById(R.id.logout);
 
@@ -164,9 +152,7 @@ public class NavigationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onRemoveButtonClick(final int position) {
-                final Project projectToRemove = projects.get(position);
-
+            public void onRemoveButtonClick(final Project projectToRemove) {
                 removeProject(projectToRemove);
             }
 
@@ -189,15 +175,17 @@ public class NavigationActivity extends AppCompatActivity {
         fontFamily.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (isFontFamilyItemSelected) {
-                    final int fontId = getFondId(parent.getItemAtPosition(position)
-                            .toString());
+                final String fontName = parent.getItemAtPosition(position).toString();
+
+                if (isFontFamilyItemSelected && ! fontName.equals(selectedFontFamily)) {
+                    selectedFontFamily = fontName;
+                    final int fontId = getFondId(fontName);
                     final Typeface typeface = ResourcesCompat.getFont(NavigationActivity.this,
                             fontId);
 
                     TypeFaceUtil.setSelectedTypeFace(typeface);
                     applyFontToAllLayouts();
-                    updateSystemSettings();
+                    updateFontFamily(fontName);
                 } else {
                     isFontFamilyItemSelected = true;
                 }
@@ -215,12 +203,15 @@ public class NavigationActivity extends AppCompatActivity {
         fontSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (isFontSizeItemSelected) {
-                    final float textSize = getFontSize(parent.getItemAtPosition(position).toString());
+                final String fontSize = parent.getItemAtPosition(position).toString();
+
+                if (isFontSizeItemSelected && ! fontSize.equals(selectedFontSize)) {
+                    selectedFontSize = fontSize;
+                    final float textSize = getFontSize(fontSize);
 
                     TypeFaceUtil.setSelectedFontSize(textSize);
                     applyFontSize();
-                    updateSystemSettings();
+                    updateFontSize((int) getFontSize(parent.getSelectedItem().toString()));
                 } else {
                     isFontSizeItemSelected = true;
                 }
@@ -237,39 +228,41 @@ public class NavigationActivity extends AppCompatActivity {
         defaultColorSpinner.setAdapter(colorAdapter);
         defaultColorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (isDefaultColorItemSelected) {
-                    final int selectedColor = getColorResourceId(parent.getItemAtPosition(position)
-                            .toString());
+            public void onItemSelected(final AdapterView<?> parent, final View view,
+                                       final int position, final long id) {
+                final String color = parent.getItemAtPosition(position).toString();
+
+                if (isDefaultColorItemSelected || color.equals(selectedColor)) {
+                    selectedColor = color;
+                    final int selectedColor = getColorResourceId(color);
 
                     TypeFaceUtil.setSelectedDefaultColor(selectedColor);
                     applyColorToComponents(selectedColor);
-                    updateSystemSettings();
+                    updateColor(color);
                 } else {
                     isDefaultColorItemSelected = true;
                 }
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(final AdapterView<?> parent) {}
         });
     }
 
-    private void updateSystemSettings() {
-        final String selectedFontFamily = fontFamily.getSelectedItem().toString();
-        final String selectedColor = defaultColorSpinner.getSelectedItem().toString();
-        final int fontSize = (int) getFontSize(fontSizeSpinner.getSelectedItem().toString());
+//    private void updateSystemSettings() {
+//        final String selectedFontFamily = fontFamily.getSelectedItem().toString();
+//        final String selectedColor = defaultColorSpinner.getSelectedItem().toString();
+//        final int fontSize = (int) getFontSize(fontSizeSpinner.getSelectedItem().toString());
+//
+//        sendSettings(selectedFontFamily, selectedColor, fontSize);
+//    }
 
-        sendSettings(selectedFontFamily, selectedColor, fontSize);
-    }
-
-    private void sendSettings(final String selectedFontFamily, final String selectedColor,
-                              final int fontSize) {
+    private void updateFontFamily(final String fontFamily) {
         final AuthenticationService authenticationService = new AuthenticationService(
                 getString(R.string.base_url), token);
 
-        authenticationService.updateSystemSetting(selectedFontFamily, fontSize,
-                selectedColor, new AuthenticationService.ApiResponseCallBack() {
+        authenticationService.updateFontFamily(fontFamily,
+                new AuthenticationService.ApiResponseCallBack() {
                     @Override
                     public void onSuccess(final String responseBody) {
                         showSnackBar(getString(R.string.update_success));
@@ -282,18 +275,52 @@ public class NavigationActivity extends AppCompatActivity {
                 });
     }
 
+    private void updateFontSize(final int fontSize) {
+        final AuthenticationService authenticationService = new AuthenticationService(
+                getString(R.string.base_url), token);
+
+        authenticationService.updateFontSize(fontSize, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {
+                showSnackBar(getString(R.string.update_success));
+            }
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
+    private void updateColor(final String color) {
+        final AuthenticationService authenticationService = new AuthenticationService(
+                getString(R.string.base_url), token);
+
+        authenticationService.updateColor(color, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {
+                showSnackBar(getString(R.string.update_success));
+            }
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
     private void getSystemSettings() {
         final AuthenticationService authenticationService = new AuthenticationService(
                 getString(R.string.base_url), token);
 
         authenticationService.getSystemSetting(new AuthenticationService.ApiResponseCallBack() {
             @Override
-            public void onSuccess(String responseBody) {
+            public void onSuccess(final String responseBody) {
                 handleSystemSettings(responseBody);
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(final String errorMessage) {
                 showSnackBar(errorMessage);
             }
         });
@@ -308,12 +335,60 @@ public class NavigationActivity extends AppCompatActivity {
                 final String fontName = data.getString(getString(R.string.font_name));
                 final int fontSize = data.getInt(getString(R.string.size));
                 final String color = data.getString(getString(R.string.font_color));
+                selectedFontFamily = fontName;
+                selectedFontSize = mapFontSize(fontSize);
+                selectedColor = color;
 
+                updateFontFamilySpinner(fontName);
+                updateFontSizeSpinner(selectedFontSize);
+                updateColorSpinner(color);
                 applySystemSettings(fontName, fontSize, color);
             }
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void updateColorSpinner(final String color) {
+        final int position = getColorPosition(color);
+
+        if (0 <= position) {
+            defaultColorSpinner.setSelection(position);
+        }
+    }
+
+    private void updateFontSizeSpinner(final String fontSize) {
+        final int position = getFontSizePosition(fontSize);
+
+        if (0 <= position) {
+            fontSizeSpinner.setSelection(position);
+        }
+    }
+
+    private void updateFontFamilySpinner(final String fontName) {
+        final int position = getFontFamilyPosition(fontName);
+
+        if (0 <= position) {
+            fontFamily.setSelection(position);
+        }
+    }
+
+    private int getFontFamilyPosition(final String fontName) {
+        final ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) fontFamily.getAdapter();
+
+        return adapter.getPosition(fontName);
+    }
+
+    private int getFontSizePosition(final String fontSize) {
+        final ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) fontSizeSpinner.getAdapter();
+
+        return adapter.getPosition(fontSize);
+    }
+
+    private int getColorPosition(final String color) {
+        final ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) defaultColorSpinner.getAdapter();
+
+        return adapter.getPosition(color);
     }
 
     private void applySystemSettings(final String fontName, final int fontSize, final String color) {
@@ -402,6 +477,7 @@ public class NavigationActivity extends AppCompatActivity {
     private void removeProject(final Project project) {
         final TodoProject projectService = new TodoProject(getString(R.string.base_url), token);
 
+        navigationController.removeProject(project);
         projectService.delete(project.getId(), new AuthenticationService.ApiResponseCallBack() {
             @Override
             public void onSuccess(String responseBody) {
@@ -473,7 +549,7 @@ public class NavigationActivity extends AppCompatActivity {
             case "Patrick":
                 return R.font.patrick_hand_sc;
             default:
-                return R.font.font;
+                return R.font.roboto;
         }
     }
 
@@ -495,12 +571,6 @@ public class NavigationActivity extends AppCompatActivity {
                 showSnackBar(errorMessage);
             }
         });
-//        projects = projectDao.getAllProjectsForUser(userProfile.getId());
-
-//        if (null != projects) {
-//            projectAdapter.clearProjects();
-//            projectAdapter.addProjects(projects);
-//        }
     }
 
     private List<Project> parseProjectsFromJson(final String responseBody) {
@@ -549,8 +619,8 @@ public class NavigationActivity extends AppCompatActivity {
         projectService.create(project, new AuthenticationService.ApiResponseCallBack() {
             @Override
             public void onSuccess(final String responseBody) {
+                loadProjectsFromDataBase();
                 showSnackBar(getString(R.string.success));
-
                 projectAdapter.notifyDataSetChanged();
             }
 
@@ -559,21 +629,6 @@ public class NavigationActivity extends AppCompatActivity {
                 showSnackBar(errorMessage);
             }
         });
-//        project.setUserId(userProfile.getId());
-//        final long projectOrder = projectAdapter.getItemCount() + 1;
-//
-//        project.setProjectOrder(projectOrder);
-//        navigationController.addNewProject(project);
-//        final long projectId = projectDao.insert(project);
-//
-//        if (-1 == projectId) {
-//            Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
-//        } else {
-//            Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT)
-//                    .show();
-//
-//            projectAdapter.notifyDataSetChanged();
-//        }
     }
 
     private void goToProfilePage() {
@@ -646,16 +701,4 @@ public class NavigationActivity extends AppCompatActivity {
 
         snackbar.show();
     }
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        projectDao.open();
-//    }
-//
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        projectDao.close();
-//    }
 }
