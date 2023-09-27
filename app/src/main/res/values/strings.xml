@@ -1,3 +1,143 @@
 <resources>
     <string name="app_name">todoApp</string>
+
+    <string-array name="filter_array">
+        <item>All</item>
+        <item>Completed</item>
+        <item>Non-Completed</item>
+    </string-array>
+
+    <string-array name="page_filter">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+    </string-array>
+
+    <string-array name="font_family">
+        <item>Aclonica</item>
+        <item>Patrick</item>
+        <item>Arial Black</item>
+        <item>Cikal Bakal</item>
+        <item>Times New Roman</item>
+        <item>roboto</item>
+    </string-array>
+
+    <string-array name="font_size">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+        <item>Default</item>
+    </string-array>
+
+    <string-array name="default_color">
+        <item>Green</item>
+        <item>Blue</item>
+    </string-array>
+
+    <string name="header">Todo Application</string>
+    <string name="add_button">Add</string>
+    <string name="page_number">X/Y</string>
+    <string name="user_input">Enter the item..</string>
+    <string name="menu_header">Todo List</string>
+    <string name="add_list_name">AddListName</string>
+    <string name="search_item_check">Items Not Found</string>
+    <string name="checkbox_suffix">_checkbox</string>
+    <string name="text_color_suffix">_textColor</string>
+    <string name="integer_format">"%d / %d"</string>
+    <string name="ui_message">ListName Removed</string>
+    <string name="cancel_view">Cancel</string>
+    <string name="add_view">Add</string>
+    <string name="status">status</string>
+    <string name="item_check">Items Not Found</string>
+    <string name="icon_letter">A</string>
+    <string name="name">Name</string>
+    <string name="text_hint">Enter the name</string>
+    <string name="title">Title</string>
+    <string name="title_hint">Enter the title..</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="fail">Failed</string>
+    <string name="success">Added Successfully</string>
+    <string name="exist">Exist Name</string>
+    <string name="exist_title">Exist Title</string>
+    <string name="delete">Deleted Successfully</string>
+    <string name="project_name">Project Name</string>
+    <string name="remove_project">Remove Project</string>
+    <string name="user_1">User 1</string>
+    <string name="profile_icon">U1</string>
+    <string name="user_title">User Title</string>
+    <string name="font_family">Font Family:</string>
+    <string name="font_size">Font Size :</string>
+    <string name="default_color">Default Color :</string>
+    <string name="logo">LOGO</string>
+    <string name="greetings">Greetings!</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="don_t_have_user_account">Don\'t have user account?</string>
+    <string name="fg_password">Forgot Password?</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="cancel_fg">Cancel</string>
+    <string name="create_your_account">Create your account!</string>
+    <string name="sign_up_name">Name</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="fields_fill">Please fill in all fields</string>
+    <string name="successful_log_in">Sign In Successfully</string>
+    <string name="user_email">User Email</string>
+    <string name="invalid_detail">Invalid Email Or Password</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="password_update">Password Updated Successfully</string>
+    <string name="invalid_email">Invalid Email</string>
+    <string name="account">Account created Successfully</string>
+    <string name="edit_user_details">editUserDetails</string>
+    <string name="logout">logout</string>
+    <string name="menu_activity">menuActivity</string>
+    <string name="user_profile">UserProfile</string>
+    <string name="update_success">Update Successfully</string>
+    <string name="user_name">User Name</string>
+    <string name="details_not_modified">User details not changed</string>
+    <string name="md5">MD5</string>
+    <string name="format">%02x</string>
+    <string name="project_id">Project Id</string>
+    <string name="completed">Completed</string>
+    <string name="non_completed">Not Completed</string>
+    <string name="all">All</string>
+    <string name="label">label</string>
+    <string name="string_format">%d / %d</string>
+    <string name="signup_title">Title</string>
+    <string name="hint">Hint</string>
+    <string name="old_hint">Old Hint</string>
+    <string name="new_hint">New Hint</string>
+    <string name="base_url">http://192.168.1.4:8080/</string>
+    <string name="token">token</string>
+    <string name="data">data</string>
+    <string name="message">message</string>
+    <string name="request_failed">Request Failed : %s</string>
+    <string name="id">_id</string>
+    <string name="description">description</string>
+    <string name="json_name">name</string>
+    <string name="removed_project">Removed Successfully</string>
+    <string name="json_title">title</string>
+    <string name="json_email">email</string>
+    <string name="attributes">additional_attributes</string>
+    <string name="created_by">created_by</string>
+    <string name="json_id">project_id</string>
+    <string name="sort_order">sort_order</string>
+    <string name="is_completed">is_completed</string>
+    <string name="font_name">font_family</string>
+    <string name="size">font_size</string>
+    <string name="font_color">color</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
+    <string name="Default">Default</string>
+    <string name="project_exist">Project Name Already Exists</string>
 </resources>
